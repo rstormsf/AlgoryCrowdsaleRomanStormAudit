@@ -9,7 +9,7 @@
  * - The token can be capped (supply set in the constructor) or uncapped (crowdsale contract can mint new tokens)
  *
  */
-contract CrowdsaleToken is ReleasableToken, MintableToken, UpgradeableToken {
+contract AlgoryToken is ReleasableToken, MintableToken, UpgradeableToken {
 
     /** Name and symbol were updated. */
     event UpdatedTokenInformation(string newName, string newSymbol);
@@ -31,7 +31,7 @@ contract CrowdsaleToken is ReleasableToken, MintableToken, UpgradeableToken {
      * @param _decimals Number of decimal places
      * @param _mintable Are new tokens created over the crowdsale or do we distribute only the initial supply? Note that when the token becomes transferable the minting always ends.
      */
-    function CrowdsaleToken(string _name, string _symbol, uint _initialSupply, uint _decimals, bool _mintable)
+    function AlgoryToken(string _name, string _symbol, uint _initialSupply, uint _decimals, bool _mintable)
     UpgradeableToken(msg.sender) {
 
         // Create any address, can be transferred

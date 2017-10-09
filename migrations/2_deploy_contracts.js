@@ -1,21 +1,44 @@
-var MyCrowdsale = artifacts.require('./MyCrowdsale.sol');
+
+var multiSigWalletContract = artifacts.require('./wallet/MultiSigWalletWithDailyLimit.sol');
+var tokenContract = artifacts.require('./token/AlgoryToken.sol');
+var crowdsaleContract = artifacts.require('./crowdsale/MintedEthCappedCrowdsale.sol');
+
 module.exports = function(deployer, network, accounts) {
-    return liveDeploy(deployer, accounts);
+    walletAddress = deployWallet(deployer, accounts);
+    tokenAddress = deployToken(deployer);
+    crowdsaleAddress = deployCrowdsale(deployer, walletAddress, tokenAddress);
+    console.log('Wallet address: ' + walletAddress);
+    console.log('Token address: ' + tokenAddress);
+    console.log('Crowdsale address: ' + crowdsaleAddress);
 };
 
-// Returns the time of the last mined block in seconds
-function latestTime() {
-    return web3.eth.getBlock('latest').timestamp;
+const ether = require('./helpers/ether');
+
+function deployWallet(deployer, accounts) {
+    const required = 2;
+    const dayLimit = ether(10); //10 ETH
+    return deployer.deploy(multiSigWalletContract, accounts, required, dayLimit).then(function (instance) {
+        return instance.address;
+    });
 }
 
-const duration = {
-    seconds: function(val) { return val},
-    minutes: function(val) { return val * this.seconds(60) },
-    hours:   function(val) { return val * this.minutes(60) },
-    days:    function(val) { return val * this.hours(24) },
-    weeks:   function(val) { return val * this.days(7) },
-    years:   function(val) { return val * this.days(365)}
-};
+function deployToken(deployer) {
+    const name = 'Algory';
+    const symbol = 'ALG';
+    const totalSupply = 120000000;
+    const decimals = 18;
+    const mintable = true;
+
+    return deployer.deploy(tokenContract, name, symbol, totalSupply, decimals, mintable).then(function (instance) {
+        return instance.address;
+    });
+}
+
+function deployCrowdsale(deployer, walletAddress, tokenAddress) {
+    const ethCap = ether(120000);
+    //TODO
+}
+
 
 async function liveDeploy(deployer, accounts) {
     const rate = 100000000000000;
