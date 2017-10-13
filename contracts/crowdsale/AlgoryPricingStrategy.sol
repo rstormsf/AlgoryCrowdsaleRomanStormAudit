@@ -1,9 +1,13 @@
 
 
-contract AlgoryPricing is PricingStrategy, Ownable {
+contract AlgoryPricingStrategy is PricingStrategy, Ownable {
+
+    function AlgoryPricingStrategy() {
+        //TODO
+    }
 
     function getCurrentPrice(uint weiRaised) public constant returns (uint result) {
-        return getCurrentTranche(weiRaised).price;
+        //TODO
     }
 
     /// @dev Calculate the current price for buy in amount.

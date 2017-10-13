@@ -1,4 +1,271 @@
 /**
+ * This smart contract code is Copyright 2017 TokenMarket Ltd. For more information see https://tokenmarket.net
+ *
+ * Licensed under the Apache License, version 2.0: https://github.com/TokenMarketNet/ico/blob/master/LICENSE.txt
+ */
+
+
+/**
+ * This smart contract code is Copyright 2017 TokenMarket Ltd. For more information see https://tokenmarket.net
+ *
+ * Licensed under the Apache License, version 2.0: https://github.com/TokenMarketNet/ico/blob/master/LICENSE.txt
+ */
+
+
+/**
+ * This smart contract code is Copyright 2017 TokenMarket Ltd. For more information see https://tokenmarket.net
+ *
+ * Licensed under the Apache License, version 2.0: https://github.com/TokenMarketNet/ico/blob/master/LICENSE.txt
+ */
+
+
+/**
+ * Safe unsigned safe math.
+ *
+ * https://blog.aragon.one/library-driven-development-in-solidity-2bebcaf88736#.750gwtwli
+ *
+ * Originally from https://raw.githubusercontent.com/AragonOne/zeppelin-solidity/master/contracts/SafeMathLib.sol
+ *
+ * Maintained here until merged to mainline zeppelin-solidity.
+ *
+ */
+library SafeMathLib {
+
+    function times(uint a, uint b) returns (uint) {
+        uint c = a * b;
+        assert(a == 0 || c / a == b);
+        return c;
+    }
+
+    function minus(uint a, uint b) returns (uint) {
+        assert(b <= a);
+        return a - b;
+    }
+
+    function plus(uint a, uint b) returns (uint) {
+        uint c = a + b;
+        assert(c>=a);
+        return c;
+    }
+
+}
+
+/**
+ * This smart contract code is Copyright 2017 TokenMarket Ltd. For more information see https://tokenmarket.net
+ *
+ * Licensed under the Apache License, version 2.0: https://github.com/TokenMarketNet/ico/blob/master/LICENSE.txt
+ */
+
+
+
+
+/**
+ * @title Ownable
+ * @dev The Ownable contract has an owner address, and provides basic authorization control
+ * functions, this simplifies the implementation of "user permissions".
+ */
+contract Ownable {
+    address public owner;
+
+
+    /**
+     * @dev The Ownable constructor sets the original `owner` of the contract to the sender
+     * account.
+     */
+    function Ownable() {
+        owner = msg.sender;
+    }
+
+
+    /**
+     * @dev Throws if called by any account other than the owner.
+     */
+    modifier onlyOwner() {
+        require(msg.sender == owner);
+        _;
+    }
+
+
+    /**
+     * @dev Allows the current owner to transfer control of the contract to a newOwner.
+     * @param newOwner The address to transfer ownership to.
+     */
+    function transferOwnership(address newOwner) onlyOwner {
+        require(newOwner != address(0));
+        owner = newOwner;
+    }
+
+}
+
+
+/*
+ * Haltable
+ *
+ * Abstract contract that allows children to implement an
+ * emergency stop mechanism. Differs from Pausable by causing a throw when in halt mode.
+ *
+ *
+ * Originally envisioned in FirstBlood ICO contract.
+ */
+contract Haltable is Ownable {
+    bool public halted;
+
+    modifier stopInEmergency {
+        if (halted) throw;
+        _;
+    }
+
+    modifier stopNonOwnersInEmergency {
+        if (halted && msg.sender != owner) throw;
+        _;
+    }
+
+    modifier onlyInEmergency {
+        if (!halted) throw;
+        _;
+    }
+
+    // called by the owner on emergency, triggers stopped state
+    function halt() external onlyOwner {
+        halted = true;
+    }
+
+    // called by the owner on end of emergency, returns to normal state
+    function unhalt() external onlyOwner onlyInEmergency {
+        halted = false;
+    }
+
+}
+
+/**
+ * This smart contract code is Copyright 2017 TokenMarket Ltd. For more information see https://tokenmarket.net
+ *
+ * Licensed under the Apache License, version 2.0: https://github.com/TokenMarketNet/ico/blob/master/LICENSE.txt
+ */
+
+
+/**
+ * Interface for defining crowdsale pricing.
+ */
+contract PricingStrategy {
+
+    /** Interface declaration. */
+    function isPricingStrategy() public constant returns (bool) {
+        return true;
+    }
+
+    /** Self check if all references are correctly set.
+     *
+     * Checks that pricing strategy matches crowdsale parameters.
+     */
+    function isSane(address crowdsale) public constant returns (bool) {
+        return true;
+    }
+
+    /**
+     * @dev Pricing tells if this is a presale purchase or not.
+       @param purchaser Address of the purchaser
+       @return False by default, true if a presale purchaser
+     */
+    function isPresalePurchase(address purchaser) public constant returns (bool) {
+        return false;
+    }
+
+    /**
+     * When somebody tries to buy tokens for X eth, calculate how many tokens they get.
+     *
+     *
+     * @param value - What is the value of the transaction send in as wei
+     * @param tokensSold - how much tokens have been sold this far
+     * @param weiRaised - how much money has been raised this far in the main token sale - this number excludes presale
+     * @param msgSender - who is the investor of this transaction
+     * @param decimals - how many decimal units the token has
+     * @return Amount of tokens the investor receives
+     */
+    function calculatePrice(uint value, uint weiRaised, uint tokensSold, address msgSender, uint decimals) public constant returns (uint tokenAmount);
+}
+
+/**
+ * This smart contract code is Copyright 2017 TokenMarket Ltd. For more information see https://tokenmarket.net
+ *
+ * Licensed under the Apache License, version 2.0: https://github.com/TokenMarketNet/ico/blob/master/LICENSE.txt
+ */
+
+
+/**
+ * Finalize agent defines what happens at the end of succeseful crowdsale.
+ *
+ * - Allocate tokens for founders, bounties and community
+ * - Make tokens transferable
+ * - etc.
+ */
+contract FinalizeAgent {
+
+    function isFinalizeAgent() public constant returns(bool) {
+        return true;
+    }
+
+    /** Return true if we can run finalizeCrowdsale() properly.
+     *
+     * This is a safety check function that doesn't allow crowdsale to begin
+     * unless the finalizer has been set up properly.
+     */
+    function isSane() public constant returns (bool);
+
+    /** Called once by crowdsale finalize() if the sale was success. */
+    function finalizeCrowdsale();
+
+}
+
+/**
+ * This smart contract code is Copyright 2017 TokenMarket Ltd. For more information see https://tokenmarket.net
+ *
+ * Licensed under the Apache License, version 2.0: https://github.com/TokenMarketNet/ico/blob/master/LICENSE.txt
+ */
+
+
+
+
+
+
+/**
+ * @title ERC20Basic
+ * @dev Simpler version of ERC20 interface
+ * @dev see https://github.com/ethereum/EIPs/issues/179
+ */
+contract ERC20Basic {
+    uint256 public totalSupply;
+    function balanceOf(address who) constant returns (uint256);
+    function transfer(address to, uint256 value) returns (bool);
+    event Transfer(address indexed from, address indexed to, uint256 value);
+}
+
+
+
+/**
+ * @title ERC20 interface
+ * @dev see https://github.com/ethereum/EIPs/issues/20
+ */
+contract ERC20 is ERC20Basic {
+    function allowance(address owner, address spender) constant returns (uint256);
+    function transferFrom(address from, address to, uint256 value) returns (bool);
+    function approve(address spender, uint256 value) returns (bool);
+    event Approval(address indexed owner, address indexed spender, uint256 value);
+}
+
+
+/**
+ * A token that defines fractional units as decimals.
+ */
+contract FractionalERC20 is ERC20 {
+
+    uint public decimals;
+
+}
+
+
+
+/**
  * Abstract base contract for token sales.
  *
  * Handle
@@ -533,4 +800,58 @@ contract Crowdsale is Haltable {
      * Create new tokens or transfer issued tokens to the investor depending on the cap model.
      */
     function assignTokens(address receiver, uint tokenAmount) private;
+}
+
+
+/**
+ * A crowdsale that is selling tokens from a preallocated pool
+ *
+ *
+ * - Tokens have precreated supply "premined"
+ *
+ * - Token owner must transfer sellable tokens to the crowdsale contract using ERC20.approve()
+ *
+ */
+contract AllocatedCrowdsale is Crowdsale {
+
+    /* The party who holds the full token pool and has approve()'ed tokens for this crowdsale */
+    address public beneficiary;
+
+    function AllocatedCrowdsale(address _token, PricingStrategy _pricingStrategy, address _multisigWallet, uint _start, uint _end, uint _minimumFundingGoal, address _beneficiary) Crowdsale(_token, _pricingStrategy, _multisigWallet, _start, _end, _minimumFundingGoal) {
+        beneficiary = _beneficiary;
+    }
+
+    /**
+     * Called from invest() to confirm if the curret investment does not break our cap rule.
+     */
+    function isBreakingCap(uint weiAmount, uint tokenAmount, uint weiRaisedTotal, uint tokensSoldTotal) constant returns (bool limitBroken) {
+        if(tokenAmount > getTokensLeft()) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    /**
+     * We are sold out when our approve pool becomes empty.
+     */
+    function isCrowdsaleFull() public constant returns (bool) {
+        return getTokensLeft() == 0;
+    }
+
+    /**
+     * Get the amount of unsold tokens allocated to this contract;
+     */
+    function getTokensLeft() public constant returns (uint) {
+        return token.allowance(owner, this);
+    }
+
+    /**
+     * Transfer tokens from approve() pool to the buyer.
+     *
+     * Use approve() given to this crowdsale to distribute the tokens.
+     */
+    function assignTokens(address receiver, uint tokenAmount) private {
+        if(!token.transferFrom(beneficiary, receiver, tokenAmount)) throw;
+    }
 }

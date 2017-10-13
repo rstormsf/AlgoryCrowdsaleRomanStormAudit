@@ -1,6 +1,3 @@
-pragma solidity ^0.4.11;
-
-
 /**
  * @title Ownable
  * @dev The Ownable contract has an owner address, and provides basic authorization control
@@ -8,9 +5,6 @@ pragma solidity ^0.4.11;
  */
 contract Ownable {
   address public owner;
-
-
-  event OwnershipTransferred(address indexed previousOwner, address indexed newOwner);
 
 
   /**
@@ -35,9 +29,8 @@ contract Ownable {
    * @dev Allows the current owner to transfer control of the contract to a newOwner.
    * @param newOwner The address to transfer ownership to.
    */
-  function transferOwnership(address newOwner) onlyOwner public {
+  function transferOwnership(address newOwner) onlyOwner {
     require(newOwner != address(0));
-    OwnershipTransferred(owner, newOwner);
     owner = newOwner;
   }
 

@@ -1,22 +1,32 @@
 
 var multiSigWalletContract = artifacts.require('./wallet/MultiSigWalletWithDailyLimit.sol');
 var tokenContract = artifacts.require('./token/AlgoryToken.sol');
+var algoryPricingStrategyContract = artifacts.require('./crowdsale/AlgoryPricingStrategy.sol');
 var crowdsaleContract = artifacts.require('./crowdsale/MintedEthCappedCrowdsale.sol');
-
-module.exports = function(deployer, network, accounts) {
-    walletAddress = deployWallet(deployer, accounts);
-    tokenAddress = deployToken(deployer);
-    crowdsaleAddress = deployCrowdsale(deployer, walletAddress, tokenAddress);
-    console.log('Wallet address: ' + walletAddress);
-    console.log('Token address: ' + tokenAddress);
-    console.log('Crowdsale address: ' + crowdsaleAddress);
-};
+var finalizeAgnetContract = artifacts.require('./crowdsale/AlgoryFinalizeAgent');
 
 const ether = require('./helpers/ether');
+const duration = require('./helpers/duration');
+const latestTime = require('./helpers/latestTime');
+
+module.exports = function(deployer, network, accounts) {
+    const walletAddress = deployWallet(deployer, accounts);
+    const tokenAddress = deployToken(deployer);
+    const pricingStrategyAddress = deployPricingStategy(deployer);
+    const crowdsaleAddress = deployCrowdsale(deployer, pricingStrategyAddress, walletAddress, tokenAddress);
+    const finalizeAgentAddress = deployFinalizeAgent(deployer, tokenAddress, crowdsaleAddress, walletAddress);
+
+    console.log('Wallet address: ' + walletAddress);
+    console.log('Token address: ' + tokenAddress);
+    console.log('Pricing strategy address: ' + pricingStrategyAddress);
+    console.log('Crowdsale address: ' + crowdsaleAddress);
+    console.log('Finalize agent address: ' + finalizeAgentAddress);
+};
 
 function deployWallet(deployer, accounts) {
     const required = 2;
     const dayLimit = ether(10); //10 ETH
+
     return deployer.deploy(multiSigWalletContract, accounts, required, dayLimit).then(function (instance) {
         return instance.address;
     });
@@ -34,22 +44,36 @@ function deployToken(deployer) {
     });
 }
 
-function deployCrowdsale(deployer, walletAddress, tokenAddress) {
-    const ethCap = ether(120000);
-    //TODO
+function deployPricingStategy(deployer) {
+    return deployer.deploy(algoryPricingStrategyContract).then(function (instance) {
+        return instance.address;
+    });
 }
 
+function deployCrowdsale(deployer, pricingStrategyAddress, walletAddress, tokenAddress) {
+    const weiCap = ether(120000);
+    const minimumFundingGoal = 0;
+    const start = latestTime + duration.minutes(1);
+    const end = startTime + duration.minutes(10);
 
-async function liveDeploy(deployer, accounts) {
-    const rate = 100000000000000;
-    const startTime = latestTime() + duration.minutes(1);
-    const endTime = startTime + duration.days(5);
+    return deployer.deploy(
+        crowdsaleContract,
+        tokenAddress,
+        pricingStrategyAddress,
+        walletAddress,
+        start,
+        end,
+        minimumFundingGoal,
+        weiCap).then(function (instance) {
+            return instance.address;
+    });
+}
 
-    console.log([startTime, endTime, rate, accounts[0]]);
-    return deployer.deploy(MyCrowdsale, startTime, endTime, rate, accounts[0]).then( async () => {
-        const instance = await MyCrowdsale.deployed();
-    const token = await instance.token.call();
-    console.log('Token address', token);
-})
+function deployFinalizeAgent(deployer, tokenAddress, crowdsaleAddress, walletAddress) {
+    const bonusBasePoints = 77777;
+
+    return deployer.deploy(finalizeAgnetContract, tokenAddress, crowdsaleAddress, bonusBasePoints, walletAddress).then(function (instance) {
+        return instance.address;
+    });
 }
 

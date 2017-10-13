@@ -1,4 +1,272 @@
 /**
+ * This smart contract code is Copyright 2017 TokenMarket Ltd. For more information see https://tokenmarket.net
+ *
+ * Licensed under the Apache License, version 2.0: https://github.com/TokenMarketNet/ico/blob/master/LICENSE.txt
+ */
+
+
+/**
+ * This smart contract code is Copyright 2017 TokenMarket Ltd. For more information see https://tokenmarket.net
+ *
+ * Licensed under the Apache License, version 2.0: https://github.com/TokenMarketNet/ico/blob/master/LICENSE.txt
+ */
+
+
+/**
+ * Interface for defining crowdsale pricing.
+ */
+contract PricingStrategy {
+
+    /** Interface declaration. */
+    function isPricingStrategy() public constant returns (bool) {
+        return true;
+    }
+
+    /** Self check if all references are correctly set.
+     *
+     * Checks that pricing strategy matches crowdsale parameters.
+     */
+    function isSane(address crowdsale) public constant returns (bool) {
+        return true;
+    }
+
+    /**
+     * @dev Pricing tells if this is a presale purchase or not.
+       @param purchaser Address of the purchaser
+       @return False by default, true if a presale purchaser
+     */
+    function isPresalePurchase(address purchaser) public constant returns (bool) {
+        return false;
+    }
+
+    /**
+     * When somebody tries to buy tokens for X eth, calculate how many tokens they get.
+     *
+     *
+     * @param value - What is the value of the transaction send in as wei
+     * @param tokensSold - how much tokens have been sold this far
+     * @param weiRaised - how much money has been raised this far in the main token sale - this number excludes presale
+     * @param msgSender - who is the investor of this transaction
+     * @param decimals - how many decimal units the token has
+     * @return Amount of tokens the investor receives
+     */
+    function calculatePrice(uint value, uint weiRaised, uint tokensSold, address msgSender, uint decimals) public constant returns (uint tokenAmount);
+}
+
+/**
+ * This smart contract code is Copyright 2017 TokenMarket Ltd. For more information see https://tokenmarket.net
+ *
+ * Licensed under the Apache License, version 2.0: https://github.com/TokenMarketNet/ico/blob/master/LICENSE.txt
+ */
+
+
+/**
+ * This smart contract code is Copyright 2017 TokenMarket Ltd. For more information see https://tokenmarket.net
+ *
+ * Licensed under the Apache License, version 2.0: https://github.com/TokenMarketNet/ico/blob/master/LICENSE.txt
+ */
+
+
+/**
+ * Safe unsigned safe math.
+ *
+ * https://blog.aragon.one/library-driven-development-in-solidity-2bebcaf88736#.750gwtwli
+ *
+ * Originally from https://raw.githubusercontent.com/AragonOne/zeppelin-solidity/master/contracts/SafeMathLib.sol
+ *
+ * Maintained here until merged to mainline zeppelin-solidity.
+ *
+ */
+library SafeMathLib {
+
+    function times(uint a, uint b) returns (uint) {
+        uint c = a * b;
+        assert(a == 0 || c / a == b);
+        return c;
+    }
+
+    function minus(uint a, uint b) returns (uint) {
+        assert(b <= a);
+        return a - b;
+    }
+
+    function plus(uint a, uint b) returns (uint) {
+        uint c = a + b;
+        assert(c>=a);
+        return c;
+    }
+
+}
+
+/**
+ * This smart contract code is Copyright 2017 TokenMarket Ltd. For more information see https://tokenmarket.net
+ *
+ * Licensed under the Apache License, version 2.0: https://github.com/TokenMarketNet/ico/blob/master/LICENSE.txt
+ */
+
+
+
+
+/**
+ * @title Ownable
+ * @dev The Ownable contract has an owner address, and provides basic authorization control
+ * functions, this simplifies the implementation of "user permissions".
+ */
+contract Ownable {
+    address public owner;
+
+
+    /**
+     * @dev The Ownable constructor sets the original `owner` of the contract to the sender
+     * account.
+     */
+    function Ownable() {
+        owner = msg.sender;
+    }
+
+
+    /**
+     * @dev Throws if called by any account other than the owner.
+     */
+    modifier onlyOwner() {
+        require(msg.sender == owner);
+        _;
+    }
+
+
+    /**
+     * @dev Allows the current owner to transfer control of the contract to a newOwner.
+     * @param newOwner The address to transfer ownership to.
+     */
+    function transferOwnership(address newOwner) onlyOwner {
+        require(newOwner != address(0));
+        owner = newOwner;
+    }
+
+}
+
+
+/*
+ * Haltable
+ *
+ * Abstract contract that allows children to implement an
+ * emergency stop mechanism. Differs from Pausable by causing a throw when in halt mode.
+ *
+ *
+ * Originally envisioned in FirstBlood ICO contract.
+ */
+contract Haltable is Ownable {
+    bool public halted;
+
+    modifier stopInEmergency {
+        if (halted) throw;
+        _;
+    }
+
+    modifier stopNonOwnersInEmergency {
+        if (halted && msg.sender != owner) throw;
+        _;
+    }
+
+    modifier onlyInEmergency {
+        if (!halted) throw;
+        _;
+    }
+
+    // called by the owner on emergency, triggers stopped state
+    function halt() external onlyOwner {
+        halted = true;
+    }
+
+    // called by the owner on end of emergency, returns to normal state
+    function unhalt() external onlyOwner onlyInEmergency {
+        halted = false;
+    }
+
+}
+
+
+/**
+ * This smart contract code is Copyright 2017 TokenMarket Ltd. For more information see https://tokenmarket.net
+ *
+ * Licensed under the Apache License, version 2.0: https://github.com/TokenMarketNet/ico/blob/master/LICENSE.txt
+ */
+
+
+/**
+ * Finalize agent defines what happens at the end of succeseful crowdsale.
+ *
+ * - Allocate tokens for founders, bounties and community
+ * - Make tokens transferable
+ * - etc.
+ */
+contract FinalizeAgent {
+
+    function isFinalizeAgent() public constant returns(bool) {
+        return true;
+    }
+
+    /** Return true if we can run finalizeCrowdsale() properly.
+     *
+     * This is a safety check function that doesn't allow crowdsale to begin
+     * unless the finalizer has been set up properly.
+     */
+    function isSane() public constant returns (bool);
+
+    /** Called once by crowdsale finalize() if the sale was success. */
+    function finalizeCrowdsale();
+
+}
+
+/**
+ * This smart contract code is Copyright 2017 TokenMarket Ltd. For more information see https://tokenmarket.net
+ *
+ * Licensed under the Apache License, version 2.0: https://github.com/TokenMarketNet/ico/blob/master/LICENSE.txt
+ */
+
+
+
+
+
+
+/**
+ * @title ERC20Basic
+ * @dev Simpler version of ERC20 interface
+ * @dev see https://github.com/ethereum/EIPs/issues/179
+ */
+contract ERC20Basic {
+    uint256 public totalSupply;
+    function balanceOf(address who) constant returns (uint256);
+    function transfer(address to, uint256 value) returns (bool);
+    event Transfer(address indexed from, address indexed to, uint256 value);
+}
+
+
+
+/**
+ * @title ERC20 interface
+ * @dev see https://github.com/ethereum/EIPs/issues/20
+ */
+contract ERC20 is ERC20Basic {
+    function allowance(address owner, address spender) constant returns (uint256);
+    function transferFrom(address from, address to, uint256 value) returns (bool);
+    function approve(address spender, uint256 value) returns (bool);
+    event Approval(address indexed owner, address indexed spender, uint256 value);
+}
+
+
+/**
+ * A token that defines fractional units as decimals.
+ */
+contract FractionalERC20 is ERC20 {
+
+    uint public decimals;
+
+}
+
+
+
+/**
  * Abstract base contract for token sales.
  *
  * Handle
@@ -533,4 +801,163 @@ contract Crowdsale is Haltable {
      * Create new tokens or transfer issued tokens to the investor depending on the cap model.
      */
     function assignTokens(address receiver, uint tokenAmount) private;
+}
+
+
+
+
+/// @dev Tranche based pricing with special support for pre-ico deals.
+///      Implementing "first price" tranches, meaning, that if byers order is
+///      covering more than one tranche, the price of the lowest tranche will apply
+///      to the whole order.
+contract EthTranchePricing is PricingStrategy, Ownable {
+
+    using SafeMathLib for uint;
+
+    uint public constant MAX_TRANCHES = 10;
+
+    // This contains all pre-ICO addresses, and their prices (weis per token)
+    mapping (address => uint) public preicoAddresses;
+
+    /**
+    * Define pricing schedule using tranches.
+    */
+    struct Tranche {
+
+    // Amount in weis when this tranche becomes active
+    uint amount;
+
+    // How many tokens per satoshi you will get while this tranche is active
+    uint price;
+    }
+
+    // Store tranches in a fixed array, so that it can be seen in a blockchain explorer
+    // Tranche 0 is always (0, 0)
+    // (TODO: change this when we confirm dynamic arrays are explorable)
+    Tranche[10] public tranches;
+
+    // How many active tranches we have
+    uint public trancheCount;
+
+    /// @dev Contruction, creating a list of tranches
+    /// @param _tranches uint[] tranches Pairs of (start amount, price)
+    function EthTranchePricing(uint[] _tranches) {
+        // Need to have tuples, length check
+        if(_tranches.length % 2 == 1 || _tranches.length >= MAX_TRANCHES*2) {
+            throw;
+        }
+
+        trancheCount = _tranches.length / 2;
+
+        uint highestAmount = 0;
+
+        for(uint i=0; i<_tranches.length/2; i++) {
+            tranches[i].amount = _tranches[i*2];
+            tranches[i].price = _tranches[i*2+1];
+
+            // No invalid steps
+            if((highestAmount != 0) && (tranches[i].amount <= highestAmount)) {
+                throw;
+            }
+
+            highestAmount = tranches[i].amount;
+        }
+
+        // We need to start from zero, otherwise we blow up our deployment
+        if(tranches[0].amount != 0) {
+            throw;
+        }
+
+        // Last tranche price must be zero, terminating the crowdale
+        if(tranches[trancheCount-1].price != 0) {
+            throw;
+        }
+    }
+
+    /// @dev This is invoked once for every pre-ICO address, set pricePerToken
+    ///      to 0 to disable
+    /// @param preicoAddress PresaleFundCollector address
+    /// @param pricePerToken How many weis one token cost for pre-ico investors
+    function setPreicoAddress(address preicoAddress, uint pricePerToken)
+    public
+    onlyOwner
+    {
+        preicoAddresses[preicoAddress] = pricePerToken;
+    }
+
+    /// @dev Iterate through tranches. You reach end of tranches when price = 0
+    /// @return tuple (time, price)
+    function getTranche(uint n) public constant returns (uint, uint) {
+        return (tranches[n].amount, tranches[n].price);
+    }
+
+    function getFirstTranche() private constant returns (Tranche) {
+        return tranches[0];
+    }
+
+    function getLastTranche() private constant returns (Tranche) {
+        return tranches[trancheCount-1];
+    }
+
+    function getPricingStartsAt() public constant returns (uint) {
+        return getFirstTranche().amount;
+    }
+
+    function getPricingEndsAt() public constant returns (uint) {
+        return getLastTranche().amount;
+    }
+
+    function isSane(address _crowdsale) public constant returns(bool) {
+        // Our tranches are not bound by time, so we can't really check are we sane
+        // so we presume we are ;)
+        // In the future we could save and track raised tokens, and compare it to
+        // the Crowdsale contract.
+        return true;
+    }
+
+    /// @dev Get the current tranche or bail out if we are not in the tranche periods.
+    /// @param weiRaised total amount of weis raised, for calculating the current tranche
+    /// @return {[type]} [description]
+    function getCurrentTranche(uint weiRaised) private constant returns (Tranche) {
+        uint i;
+
+        for(i=0; i < tranches.length; i++) {
+            if(weiRaised < tranches[i].amount) {
+                return tranches[i-1];
+            }
+        }
+    }
+
+    /// @dev Get the current price.
+    /// @param weiRaised total amount of weis raised, for calculating the current tranche
+    /// @return The current price or 0 if we are outside trache ranges
+    function getCurrentPrice(uint weiRaised) public constant returns (uint result) {
+        return getCurrentTranche(weiRaised).price;
+    }
+
+    function isPresalePurchase(address purchaser) public constant returns (bool) {
+        if(preicoAddresses[purchaser] > 0)
+        return true;
+        else
+        return false;
+    }
+
+    /// @dev Calculate the current price for buy in amount.
+    function calculatePrice(uint value, uint weiRaised, uint tokensSold, address msgSender, uint decimals) public constant returns (uint) {
+
+        uint multiplier = 10 ** decimals;
+
+        // This investor is coming through pre-ico
+        if(preicoAddresses[msgSender] > 0) {
+            return value.times(multiplier) / preicoAddresses[msgSender];
+        }
+
+        uint price = getCurrentPrice(weiRaised);
+        return value.times(multiplier) / price;
+    }
+
+    function() payable {
+        throw; // No money on this contract
+    }
+
 }

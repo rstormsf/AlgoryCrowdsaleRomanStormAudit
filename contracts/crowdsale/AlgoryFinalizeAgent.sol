@@ -24,7 +24,7 @@ contract AlgoryFinalizeAgent is FinalizeAgent {
     /* How much bonus tokens we allocated */
     uint public allocatedBonus;
 
-    function BonusFinalizeAgent(AlgoryToken _token, Crowdsale _crowdsale, uint _bonusBasePoints, address _teamMultisig) {
+    function AlgoryFinalizeAgent(AlgoryToken _token, Crowdsale _crowdsale, uint _bonusBasePoints, address _teamMultisig) {
         token = _token;
         crowdsale = _crowdsale;
         if(address(crowdsale) == 0) {

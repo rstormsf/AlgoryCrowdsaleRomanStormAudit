@@ -1,6 +1,3 @@
-pragma solidity ^0.4.15;
-
-
 /*
  * Haltable
  *
@@ -15,6 +12,11 @@ contract Haltable is Ownable {
 
   modifier stopInEmergency {
     if (halted) throw;
+    _;
+  }
+
+  modifier stopNonOwnersInEmergency {
+    if (halted && msg.sender != owner) throw;
     _;
   }
 

@@ -1,4 +1,3 @@
-
 /**
  * Finalize agent defines what happens at the end of succeseful crowdsale.
  *
