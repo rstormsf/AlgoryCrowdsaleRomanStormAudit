@@ -1,3 +1,8 @@
+pragma solidity ^0.4.15;
+
+import './ERC20.sol';
+import '../ownership/Ownable.sol';
+
 /**
  * Define interface for releasing the token transfer after a successful crowdsale.
  */
@@ -20,7 +25,7 @@ contract ReleasableToken is ERC20, Ownable {
 
         if(!released) {
             if(!transferAgents[_sender]) {
-                throw;
+                revert();
             }
         }
 
@@ -57,7 +62,7 @@ contract ReleasableToken is ERC20, Ownable {
     /** The function can be called only before or after the tokens have been releasesd */
     modifier inReleaseState(bool releaseState) {
         if(releaseState != released) {
-            throw;
+            revert();
         }
         _;
     }
@@ -65,7 +70,7 @@ contract ReleasableToken is ERC20, Ownable {
     /** The function can be called only by a whitelisted release agent. */
     modifier onlyReleaseAgent() {
         if(msg.sender != releaseAgent) {
-            throw;
+            revert();
         }
         _;
     }

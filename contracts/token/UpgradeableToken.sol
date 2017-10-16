@@ -1,3 +1,8 @@
+pragma solidity ^0.4.15;
+
+import './StandardToken.sol';
+import './UpgradeAgent.sol';
+
 /**
  * A token upgrade mechanism where users can opt-in amount of tokens to the next smart contract revision.
  *
@@ -50,11 +55,11 @@ contract UpgradeableToken is StandardToken {
         UpgradeState state = getUpgradeState();
         if(!(state == UpgradeState.ReadyToUpgrade || state == UpgradeState.Upgrading)) {
             // Called in a bad state
-            throw;
+            revert();
         }
 
         // Validate input value.
-        if (value == 0) throw;
+        if (value == 0) revert();
 
         balances[msg.sender] = safeSub(balances[msg.sender], value);
 
@@ -74,21 +79,21 @@ contract UpgradeableToken is StandardToken {
 
         if(!canUpgrade()) {
             // The token is not yet in a state that we could think upgrading
-            throw;
+            revert();
         }
 
-        if (agent == 0x0) throw;
+        if (agent == 0x0) revert();
         // Only a master can designate the next agent
-        if (msg.sender != upgradeMaster) throw;
+        if (msg.sender != upgradeMaster) revert();
         // Upgrade has already begun for an agent
-        if (getUpgradeState() == UpgradeState.Upgrading) throw;
+        if (getUpgradeState() == UpgradeState.Upgrading) revert();
 
         upgradeAgent = UpgradeAgent(agent);
 
         // Bad interface
-        if(!upgradeAgent.isUpgradeAgent()) throw;
+        if(!upgradeAgent.isUpgradeAgent()) revert();
         // Make sure that token supplies match in source and target
-        if (upgradeAgent.originalSupply() != totalSupply) throw;
+        if (upgradeAgent.originalSupply() != totalSupply) revert();
 
         UpgradeAgentSet(upgradeAgent);
     }
@@ -109,8 +114,8 @@ contract UpgradeableToken is StandardToken {
      * This allows us to set a new owner for the upgrade mechanism.
      */
     function setUpgradeMaster(address master) public {
-        if (master == 0x0) throw;
-        if (msg.sender != upgradeMaster) throw;
+        if (master == 0x0) revert();
+        if (msg.sender != upgradeMaster) revert();
         upgradeMaster = master;
     }
 

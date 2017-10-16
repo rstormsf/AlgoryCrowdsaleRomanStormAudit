@@ -1,3 +1,5 @@
+pragma solidity ^0.4.15;
+
 /**
  * Math operations with safety checks
  */

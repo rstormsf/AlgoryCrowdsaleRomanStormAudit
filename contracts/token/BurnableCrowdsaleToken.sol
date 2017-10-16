@@ -1,3 +1,8 @@
+pragma solidity ^0.4.15;
+
+import './BurnableToken.sol';
+import './CrowdsaleToken.sol';
+
 /**
  * A crowdsaled token that you can also burn.
  *

@@ -2,7 +2,7 @@
 var multiSigWalletContract = artifacts.require('./wallet/MultiSigWalletWithDailyLimit.sol');
 var tokenContract = artifacts.require('./token/AlgoryToken.sol');
 var algoryPricingStrategyContract = artifacts.require('./crowdsale/AlgoryPricingStrategy.sol');
-var crowdsaleContract = artifacts.require('./crowdsale/MintedEthCappedCrowdsale.sol');
+var crowdsaleContract = artifacts.require('./crowdsale/AllocatedCrowdsale.sol');
 var finalizeAgnetContract = artifacts.require('./crowdsale/AlgoryFinalizeAgent');
 
 const ether = require('./helpers/ether');

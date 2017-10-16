@@ -1,13 +1,156 @@
+pragma solidity ^0.4.15;
 
+import '../ownership/Ownable.sol';
+import './PricingStrategy.sol';
+import '../math/SafeMathLib.sol';
 
+/// @dev Tranche based pricing with special support for pre-ico deals.
+///      Implementing "first price" tranches, meaning, that if byers order is
+///      covering more than one tranche, the price of the lowest tranche will apply
+///      to the whole order.
 contract AlgoryPricingStrategy is PricingStrategy, Ownable {
 
-    function AlgoryPricingStrategy() {
-        //TODO
+    using SafeMathLib for uint;
+
+    uint public constant MAX_TRANCHES = 10;
+
+    // This contains all pre-ICO addresses, and their prices (weis per token)
+    mapping (address => uint) public preicoAddresses;
+
+    /**
+    * Define pricing schedule using tranches.
+    */
+    struct Tranche {
+
+    // Amount in weis when this tranche becomes active
+    uint amount;
+
+    // How many tokens per satoshi you will get while this tranche is active
+    uint price;
+
     }
 
+    uint public preicoPrice;
+
+    // How many tokens investror can buy
+    uint public preicoMaxValue;
+
+    // Store tranches in a fixed array, so that it can be seen in a blockchain explorer
+    // Tranche 0 is always (0, 0)
+    // (TODO: change this when we confirm dynamic arrays are explorable)
+    Tranche[10] public tranches;
+
+    // How many active tranches we have
+    uint public trancheCount;
+
+    /// @dev Contruction, creating a list of tranches
+    /// @param _tranches uint[] tranches Pairs of (start amount, price)
+    function AlgoryPricingStrategy(uint[] _tranches, uint _preicoMaxValue) {
+        // Need to have tuples, length check
+        if(_tranches.length % 2 == 1 || _tranches.length >= MAX_TRANCHES*2) {
+            revert();
+        }
+
+        trancheCount = _tranches.length / 2;
+
+        uint highestAmount = 0;
+
+        for(uint i=0; i<_tranches.length/2; i++) {
+            tranches[i].amount = _tranches[i*2];
+            tranches[i].price = _tranches[i*2+1];
+
+            // No invalid steps
+            if((highestAmount != 0) && (tranches[i].amount <= highestAmount)) {
+                revert();
+            }
+
+            highestAmount = tranches[i].amount;
+        }
+
+        // We need to start from zero, otherwise we blow up our deployment
+        if(tranches[0].amount != 0) {
+            revert();
+        }
+
+        // Last tranche price must be zero, terminating the crowdsale
+        if(tranches[trancheCount-1].price != 0) {
+            revert();
+        }
+
+        preicoMaxValue = _preicoMaxValue;
+        // preicoPrice equal price from first tranche
+        preicoPrice = tranches[0].price;
+    }
+
+    /// @dev This is invoked once for every pre-ICO address, set pricePerToken
+    ///      to 0 to disable
+    /// @param preicoAddress PresaleFundCollector address
+    /// @param maxValue How many tokens pre-ico investor can maximum buy
+    function setPreicoAddress(address preicoAddress, uint maxValue)
+    public
+    onlyOwner
+    {
+        if (maxValue > preicoMaxValue) {
+            revert();
+        }
+        preicoAddresses[preicoAddress] = maxValue;
+    }
+
+    /// @dev Iterate through tranches. You reach end of tranches when price = 0
+    /// @return tuple (time, price)
+    function getTranche(uint n) public constant returns (uint, uint) {
+        return (tranches[n].amount, tranches[n].price);
+    }
+
+    function getFirstTranche() private constant returns (Tranche) {
+        return tranches[0];
+    }
+
+    function getLastTranche() private constant returns (Tranche) {
+        return tranches[trancheCount-1];
+    }
+
+    function getPricingStartsAt() public constant returns (uint) {
+        return getFirstTranche().amount;
+    }
+
+    function getPricingEndsAt() public constant returns (uint) {
+        return getLastTranche().amount;
+    }
+
+    function isSane(address _crowdsale) public constant returns(bool) {
+        // Our tranches are not bound by time, so we can't really check are we sane
+        // so we presume we are ;)
+        // In the future we could save and track raised tokens, and compare it to
+        // the Crowdsale contract.
+        return true;
+    }
+
+    /// @dev Get the current tranche or bail out if we are not in the tranche periods.
+    /// @param weiRaised total amount of weis raised, for calculating the current tranche
+    /// @return {[type]} [description]
+    function getCurrentTranche(uint weiRaised) private constant returns (Tranche) {
+        uint i;
+
+        for(i=0; i < tranches.length; i++) {
+            if(weiRaised < tranches[i].amount) {
+                return tranches[i-1];
+            }
+        }
+    }
+
+    /// @dev Get the current price.
+    /// @param weiRaised total amount of weis raised, for calculating the current tranche
+    /// @return The current price or 0 if we are outside trache ranges
     function getCurrentPrice(uint weiRaised) public constant returns (uint result) {
-        //TODO
+        return getCurrentTranche(weiRaised).price;
+    }
+
+    function isPresalePurchase(address purchaser) public constant returns (bool) {
+        if(preicoAddresses[purchaser] > 0)
+        return true;
+        else
+        return false;
     }
 
     /// @dev Calculate the current price for buy in amount.
@@ -17,7 +160,11 @@ contract AlgoryPricingStrategy is PricingStrategy, Ownable {
 
         // This investor is coming through pre-ico
         if(preicoAddresses[msgSender] > 0) {
-            return value.times(multiplier) / preicoAddresses[msgSender];
+            if (value > preicoAddresses[msgSender]) {
+                revert();
+            } else {
+                return value.times(multiplier) / preicoPrice;
+            }
         }
 
         uint price = getCurrentPrice(weiRaised);
@@ -25,7 +172,7 @@ contract AlgoryPricingStrategy is PricingStrategy, Ownable {
     }
 
     function() payable {
-        throw; // No money on this contract
+        revert(); // No money on this contract
     }
 
 }

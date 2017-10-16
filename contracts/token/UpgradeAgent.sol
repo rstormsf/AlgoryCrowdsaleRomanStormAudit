@@ -1,3 +1,5 @@
+pragma solidity ^0.4.15;
+
 /**
  * Upgrade agent interface inspired by Lunyr.
  *

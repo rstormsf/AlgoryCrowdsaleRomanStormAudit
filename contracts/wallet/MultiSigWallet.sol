@@ -1,15 +1,13 @@
-/**
- * Originally from https://github.com/ConsenSys/MultiSigWallet
- */
-
+pragma solidity ^0.4.15;
 
 
 /// @title Multisignature wallet - Allows multiple parties to agree on transactions before execution.
 /// @author Stefan George - <stefan.george@consensys.net>
 contract MultiSigWallet {
 
-    uint constant public MAX_OWNER_COUNT = 50;
-
+    /*
+     *  Events
+     */
     event Confirmation(address indexed sender, uint indexed transactionId);
     event Revocation(address indexed sender, uint indexed transactionId);
     event Submission(uint indexed transactionId);
@@ -20,6 +18,14 @@ contract MultiSigWallet {
     event OwnerRemoval(address indexed owner);
     event RequirementChange(uint required);
 
+    /*
+     *  Constants
+     */
+    uint constant public MAX_OWNER_COUNT = 50;
+
+    /*
+     *  Storage
+     */
     mapping (uint => Transaction) public transactions;
     mapping (uint => mapping (address => bool)) public confirmations;
     mapping (address => bool) public isOwner;
@@ -34,51 +40,54 @@ contract MultiSigWallet {
     bool executed;
     }
 
+    /*
+     *  Modifiers
+     */
     modifier onlyWallet() {
         if (msg.sender != address(this))
-        throw;
+        revert();
         _;
     }
 
     modifier ownerDoesNotExist(address owner) {
         if (isOwner[owner])
-        throw;
+        revert();
         _;
     }
 
     modifier ownerExists(address owner) {
         if (!isOwner[owner])
-        throw;
+        revert();
         _;
     }
 
     modifier transactionExists(uint transactionId) {
         if (transactions[transactionId].destination == 0)
-        throw;
+        revert();
         _;
     }
 
     modifier confirmed(uint transactionId, address owner) {
         if (!confirmations[transactionId][owner])
-        throw;
+        revert();
         _;
     }
 
     modifier notConfirmed(uint transactionId, address owner) {
         if (confirmations[transactionId][owner])
-        throw;
+        revert();
         _;
     }
 
     modifier notExecuted(uint transactionId) {
         if (transactions[transactionId].executed)
-        throw;
+        revert();
         _;
     }
 
     modifier notNull(address _address) {
         if (_address == 0)
-        throw;
+        revert();
         _;
     }
 
@@ -87,7 +96,7 @@ contract MultiSigWallet {
         || _required > ownerCount
         || _required == 0
         || ownerCount == 0)
-        throw;
+        revert();
         _;
     }
 
@@ -111,7 +120,7 @@ contract MultiSigWallet {
     {
         for (uint i=0; i<_owners.length; i++) {
             if (isOwner[_owners[i]] || _owners[i] == 0)
-            throw;
+            revert();
             isOwner[_owners[i]] = true;
         }
         owners = _owners;
@@ -153,7 +162,7 @@ contract MultiSigWallet {
 
     /// @dev Allows to replace an owner with a new owner. Transaction has to be sent by wallet.
     /// @param owner Address of owner to be replaced.
-    /// @param owner Address of new owner.
+    /// @param newOwner Address of new owner.
     function replaceOwner(address owner, address newOwner)
     public
     onlyWallet
@@ -224,6 +233,8 @@ contract MultiSigWallet {
     /// @param transactionId Transaction ID.
     function executeTransaction(uint transactionId)
     public
+    ownerExists(msg.sender)
+    confirmed(transactionId, msg.sender)
     notExecuted(transactionId)
     {
         if (isConfirmed(transactionId)) {

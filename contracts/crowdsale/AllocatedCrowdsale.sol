@@ -1,3 +1,7 @@
+pragma solidity ^0.4.15;
+
+import './Crowdsale.sol';
+
 /**
  * A crowdsale that is selling tokens from a preallocated pool
  *
@@ -12,7 +16,7 @@ contract AllocatedCrowdsale is Crowdsale {
     /* The party who holds the full token pool and has approve()'ed tokens for this crowdsale */
     address public beneficiary;
 
-    function AllocatedCrowdsale(address _token, PricingStrategy _pricingStrategy, address _multisigWallet, uint _start, uint _end, uint _minimumFundingGoal, address _beneficiary) Crowdsale(_token, _pricingStrategy, _multisigWallet, _start, _end, _minimumFundingGoal) {
+    function AllocatedCrowdsale(address _token, PricingStrategy _pricingStrategy, address _multisigWallet, uint _start, uint _end, address _beneficiary) Crowdsale(_token, _pricingStrategy, _multisigWallet, _start, _end) {
         beneficiary = _beneficiary;
     }
 
@@ -47,6 +51,6 @@ contract AllocatedCrowdsale is Crowdsale {
      * Use approve() given to this crowdsale to distribute the tokens.
      */
     function assignTokens(address receiver, uint tokenAmount) private {
-        if(!token.transferFrom(beneficiary, receiver, tokenAmount)) throw;
+        if(!token.transferFrom(beneficiary, receiver, tokenAmount)) revert();
     }
 }

@@ -1,3 +1,5 @@
+pragma solidity ^0.4.15;
+
 /**
  * Interface for defining crowdsale pricing.
  */

@@ -1,3 +1,5 @@
+pragma solidity ^0.4.15;
+
 /**
  * Finalize agent defines what happens at the end of succeseful crowdsale.
  *

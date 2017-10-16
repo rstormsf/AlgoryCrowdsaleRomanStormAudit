@@ -1,3 +1,9 @@
+pragma solidity ^0.4.15;
+
+import './ReleasableToken.sol';
+import './MintableToken.sol';
+import './UpgradeableToken.sol';
+
 /**
  * A crowdsaled token.
  *
@@ -57,7 +63,7 @@ contract AlgoryToken is ReleasableToken, MintableToken, UpgradeableToken {
         if(!_mintable) {
             mintingFinished = true;
             if(totalSupply == 0) {
-                throw; // Cannot create a token without supply and no minting
+                revert(); // Cannot create a token without supply and no minting
             }
         }
     }

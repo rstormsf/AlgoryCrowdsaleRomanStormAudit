@@ -1,3 +1,7 @@
+pragma solidity ^0.4.15;
+
+import './StandardToken.sol';
+
 contract BurnableToken is StandardToken {
 
     address public constant BURN_ADDRESS = 0;
