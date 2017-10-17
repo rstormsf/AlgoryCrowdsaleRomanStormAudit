@@ -1,8 +1,8 @@
 pragma solidity ^0.4.15;
 
+import '../math/SafeMathLib.sol';
 import '../ownership/Ownable.sol';
 import './StandardToken.sol';
-import '../math/SafeMathLib.sol';
 
 /**
  * A token that can increase its supply by another contract.

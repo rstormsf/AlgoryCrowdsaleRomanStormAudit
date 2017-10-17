@@ -1,79 +1,81 @@
+let multiSigWallet = artifacts.require('./wallet/MultiSigWallet.sol');
+let token = artifacts.require('./token/AlgoryToken.sol');
+let pricingStrategy = artifacts.require('./crowdsale/AlgoryPricingStrategy.sol');
+let allocatedCrowdsale = artifacts.require('./crowdsale/AllocatedCrowdsale.sol');
+let finalizeAgent = artifacts.require('./crowdsale/AlgoryFinalizeAgent.sol');
+let safeMathLib = artifacts.require('./math/SafeMathLib.sol');
 
-var multiSigWalletContract = artifacts.require('./wallet/MultiSigWalletWithDailyLimit.sol');
-var tokenContract = artifacts.require('./token/AlgoryToken.sol');
-var algoryPricingStrategyContract = artifacts.require('./crowdsale/AlgoryPricingStrategy.sol');
-var crowdsaleContract = artifacts.require('./crowdsale/AllocatedCrowdsale.sol');
-var finalizeAgnetContract = artifacts.require('./crowdsale/AlgoryFinalizeAgent');
-
-const ether = require('./helpers/ether');
-const duration = require('./helpers/duration');
-const latestTime = require('./helpers/latestTime');
-
-module.exports = function(deployer, network, accounts) {
-    const walletAddress = deployWallet(deployer, accounts);
-    const tokenAddress = deployToken(deployer);
-    const pricingStrategyAddress = deployPricingStategy(deployer);
-    const crowdsaleAddress = deployCrowdsale(deployer, pricingStrategyAddress, walletAddress, tokenAddress);
-    const finalizeAgentAddress = deployFinalizeAgent(deployer, tokenAddress, crowdsaleAddress, walletAddress);
-
-    console.log('Wallet address: ' + walletAddress);
-    console.log('Token address: ' + tokenAddress);
-    console.log('Pricing strategy address: ' + pricingStrategyAddress);
-    console.log('Crowdsale address: ' + crowdsaleAddress);
-    console.log('Finalize agent address: ' + finalizeAgentAddress);
-};
-
-function deployWallet(deployer, accounts) {
-    const required = 2;
-    const dayLimit = ether(10); //10 ETH
-
-    return deployer.deploy(multiSigWalletContract, accounts, required, dayLimit).then(function (instance) {
-        return instance.address;
-    });
+function latestTime() {
+    return web3.eth.getBlock('latest').timestamp;
 }
 
-function deployToken(deployer) {
+const duration = {
+    seconds: function(val) { return val},
+    minutes: function(val) { return val * this.seconds(60) },
+    hours:   function(val) { return val * this.minutes(60) },
+    days:    function(val) { return val * this.hours(24) },
+    weeks:   function(val) { return val * this.days(7) },
+    years:   function(val) { return val * this.days(365)}
+};
+
+module.exports = function(deployer, network, accounts) {
+
+    // MultiSigWallet
+    const requiredConfirmations = 1;
+
+    // Token
     const name = 'Algory';
     const symbol = 'ALG';
     const totalSupply = 120000000;
     const decimals = 18;
-    const mintable = true;
+    const mintable = false;
 
-    return deployer.deploy(tokenContract, name, symbol, totalSupply, decimals, mintable).then(function (instance) {
-        return instance.address;
+    // Pricing Strategy
+    const tranches = [0, 2000, 100000, 40000, 50000000, 0];
+    const preicoMaxValue = 10000;
+
+    // Crowdsale
+    const beneficiary = '0x10e2068d2c0c58d4affa26f77f7ec876e7496526';
+    const start = latestTime() + duration.minutes(1);
+    const end = start + duration.minutes(10);
+
+    // Deploy MultiSigWallet
+    return deployer.deploy(multiSigWallet, accounts, requiredConfirmations)
+    // Deploy SafeMathLib
+    .then(function() {
+        return deployer.deploy(safeMathLib)
+    })
+    // Link SafeMathLib
+    .then(function() {
+        deployer.link(safeMathLib, token);
+        deployer.link(safeMathLib, pricingStrategy);
+        deployer.link(safeMathLib, allocatedCrowdsale);
+        deployer.link(safeMathLib, finalizeAgent);
+    })
+    // Deploy Token
+    .then(function() {
+        return deployer.deploy(token, name, symbol, totalSupply, decimals, mintable);
+    })
+    //Deploy Pricing Strategy
+    .then(function() {
+        return deployer.deploy(pricingStrategy, tranches, preicoMaxValue);
+    })
+    //Deploy Crowdsale
+    .then(function() {
+        return deployer.deploy(
+            allocatedCrowdsale,
+            token.address,
+            pricingStrategy.address,
+            multiSigWallet.address,
+            start,
+            end,
+            beneficiary
+        );
+    })
+    //Deploy Finalize Agent
+    .then(function() {
+        return deployer.deploy(finalizeAgent, token.address, allocatedCrowdsale.address, multiSigWallet.address);
     });
-}
 
-function deployPricingStategy(deployer) {
-    return deployer.deploy(algoryPricingStrategyContract).then(function (instance) {
-        return instance.address;
-    });
-}
-
-function deployCrowdsale(deployer, pricingStrategyAddress, walletAddress, tokenAddress) {
-    const weiCap = ether(120000);
-    const minimumFundingGoal = 0;
-    const start = latestTime + duration.minutes(1);
-    const end = startTime + duration.minutes(10);
-
-    return deployer.deploy(
-        crowdsaleContract,
-        tokenAddress,
-        pricingStrategyAddress,
-        walletAddress,
-        start,
-        end,
-        minimumFundingGoal,
-        weiCap).then(function (instance) {
-            return instance.address;
-    });
-}
-
-function deployFinalizeAgent(deployer, tokenAddress, crowdsaleAddress, walletAddress) {
-    const bonusBasePoints = 77777;
-
-    return deployer.deploy(finalizeAgnetContract, tokenAddress, crowdsaleAddress, bonusBasePoints, walletAddress).then(function (instance) {
-        return instance.address;
-    });
-}
+};
 
