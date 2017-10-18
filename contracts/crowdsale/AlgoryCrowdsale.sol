@@ -153,7 +153,6 @@ contract AlgoryCrowdsale is Haltable {
 
     /**
      * Invest to tokens, recognize the payer and clear his address.
-     *
      */
     function buyWithSignedAddress(uint128 customerId, uint8 v, bytes32 r, bytes32 s) public payable {
         investWithSignedAddress(msg.sender, customerId, v, r, s);
@@ -207,6 +206,7 @@ contract AlgoryCrowdsale is Haltable {
         if(address(finalizeAgent) != 0) {
             finalizeAgent.finalizeCrowdsale();
         }
+//        token.releaseTokenTransfer();
         finalized = true;
     }
 
@@ -257,7 +257,6 @@ contract AlgoryCrowdsale is Haltable {
      */
     function setFinalizeAgent(FinalizeAgent addr) onlyOwner {
         finalizeAgent = addr;
-        // Don't allow setting bad agent
         if(!finalizeAgent.isFinalizeAgent()) revert();
     }
 
@@ -267,9 +266,8 @@ contract AlgoryCrowdsale is Haltable {
      * Design choice: no state restrictions on the set, so that we can fix fat finger mistakes.
      */
     function setPricingStrategy(PricingStrategy _pricingStrategy) onlyOwner {
-        // Don't allow setting bad agent
-        if(!pricingStrategy.isPricingStrategy()) revert();
         pricingStrategy = _pricingStrategy;
+        if(!pricingStrategy.isPricingStrategy()) revert();
     }
 
     /**

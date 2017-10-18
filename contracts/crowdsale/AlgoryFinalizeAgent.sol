@@ -3,7 +3,7 @@ pragma solidity ^0.4.15;
 import './FinalizeAgent.sol';
 import '../math/SafeMathLib.sol';
 import '../token/AlgoryToken.sol';
-import '../crowdsale/Crowdsale.sol';
+import './AlgoryCrowdsale.sol';
 
 /**
  * At the end of the successful crowdsale unlock tokens transfer.
@@ -14,18 +14,12 @@ contract AlgoryFinalizeAgent is FinalizeAgent {
     using SafeMathLib for uint;
 
     AlgoryToken public token;
-    Crowdsale public crowdsale;
+    AlgoryCrowdsale public crowdsale;
 
-    /** Where we move the tokens at the end of the sale. */
-    address public teamMultisig;
-
-    function AlgoryFinalizeAgent(AlgoryToken _token, Crowdsale _crowdsale, address _teamMultisig) {
+    function AlgoryFinalizeAgent(AlgoryToken _token, AlgoryCrowdsale _crowdsale) {
         token = _token;
         crowdsale = _crowdsale;
-        if(address(crowdsale) == 0) revert();
-
-        teamMultisig = _teamMultisig;
-        if(address(teamMultisig) == 0) revert();
+        if(address(token) == 0 || address(crowdsale) == 0) revert();
     }
 
     /* Can we run finalize properly */

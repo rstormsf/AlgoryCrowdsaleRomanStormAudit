@@ -25,19 +25,19 @@ contract AlgoryPricingStrategy is PricingStrategy, Ownable {
 
     function AlgoryPricingStrategy() {
 
-        tranches[0].amount = 100000;
-        tranches[0].price = 4000;
+        tranches[0].amount = 10000 ether;
+        tranches[0].price = 1200 / 1 ether;
 
-        tranches[1].amount = 100000;
-        tranches[1].price = 4000;
+        tranches[1].amount = 15000 ether;
+        tranches[1].price = 1100 / 1 ether;
 
-        tranches[2].amount = 100000;
-        tranches[2].price = 4000;
+        tranches[2].amount = 25000 ether;
+        tranches[2].price = 1050 / 1 ether;
 
-        tranches[3].amount = 100000;
-        tranches[3].price = 4000;
+        tranches[3].amount = 50000 ether;
+        tranches[3].price = 1000 / 1 ether;
 
-        presaleMaxValue = 200;
+        presaleMaxValue = 300 ether;
         trancheCount = tranches.length;
     }
 
