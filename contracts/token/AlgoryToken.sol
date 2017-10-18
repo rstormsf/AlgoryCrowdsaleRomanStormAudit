@@ -1,29 +1,21 @@
 pragma solidity ^0.4.15;
 
 import './ReleasableToken.sol';
-import './MintableToken.sol';
 import './UpgradeableToken.sol';
+import './FractionalERC20.sol';
+import './BurnableToken.sol';
 
 /**
- * A crowdsaled token.
- *
- * An ERC-20 token designed specifically for crowdsales with investor protection and further development path.
- *
- * - The token transfer() is disabled until the crowdsale is over
- * - The token contract gives an opt-in upgrade path to a new contract
- * - The same token can be part of several crowdsales through approve() mechanism
- * - The token can be capped (supply set in the constructor) or uncapped (crowdsale contract can mint new tokens)
+ * A Algory token.
  *
  */
-contract AlgoryToken is ReleasableToken, MintableToken, UpgradeableToken {
+contract AlgoryToken is FractionalERC20, ReleasableToken, UpgradeableToken, BurnableToken {
 
     /** Name and symbol were updated. */
     event UpdatedTokenInformation(string newName, string newSymbol);
 
     string public name;
-
     string public symbol;
-
     uint public decimals;
 
     /**
@@ -35,21 +27,13 @@ contract AlgoryToken is ReleasableToken, MintableToken, UpgradeableToken {
      * @param _symbol Token symbol - should be all caps
      * @param _initialSupply How many tokens we start with
      * @param _decimals Number of decimal places
-     * @param _mintable Are new tokens created over the crowdsale or do we distribute only the initial supply? Note that when the token becomes transferable the minting always ends.
      */
-    function AlgoryToken(string _name, string _symbol, uint _initialSupply, uint _decimals, bool _mintable)
-    UpgradeableToken(msg.sender) {
+    function AlgoryToken(string _name, string _symbol, uint _initialSupply, uint _decimals) UpgradeableToken(msg.sender) {
 
-        // Create any address, can be transferred
-        // to team multisig via changeOwner(),
-        // also remember to call setUpgradeMaster()
         owner = msg.sender;
-
         name = _name;
         symbol = _symbol;
-
         totalSupply = _initialSupply;
-
         decimals = _decimals;
 
         // Create initially all balance on the team multisig
@@ -57,14 +41,6 @@ contract AlgoryToken is ReleasableToken, MintableToken, UpgradeableToken {
 
         if(totalSupply > 0) {
             Minted(owner, totalSupply);
-        }
-
-        // No more new supply allowed after the token creation
-        if(!_mintable) {
-            mintingFinished = true;
-            if(totalSupply == 0) {
-                revert(); // Cannot create a token without supply and no minting
-            }
         }
     }
 
