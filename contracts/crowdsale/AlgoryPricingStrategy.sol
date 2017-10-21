@@ -26,19 +26,27 @@ contract AlgoryPricingStrategy is PricingStrategy, Ownable {
     function AlgoryPricingStrategy() {
 
         tranches[0].amount = 10000 ether;
-        tranches[0].price = 1200 / 1 ether;
+        tranches[0].price = 1200;
+//        tranches[0].price = 1200 / 1 ether;
 
         tranches[1].amount = 15000 ether;
-        tranches[1].price = 1100 / 1 ether;
+        tranches[1].price = 1100;
+//        tranches[1].price = 1100 / 1 ether;
 
         tranches[2].amount = 25000 ether;
-        tranches[2].price = 1050 / 1 ether;
+        tranches[2].price = 1050;
+//        tranches[2].price = 1050 / 1 ether;
 
         tranches[3].amount = 50000 ether;
-        tranches[3].price = 1000 / 1 ether;
+        tranches[3].price = 1000;
+//        tranches[3].price = 1000 / 1 ether;
 
         presaleMaxValue = 300 ether;
         trancheCount = tranches.length;
+    }
+
+    function isSane(address crowdsale) public constant returns (bool) {
+        return true;
     }
 
     function getTranche(uint n) public constant returns (uint, uint) {
@@ -63,7 +71,7 @@ contract AlgoryPricingStrategy is PricingStrategy, Ownable {
     }
 
     function isPresaleFull(uint presaleWeiRaised) public constant returns (bool) {
-        return presaleWeiRaised > getFirstTranche.amount;
+        return presaleWeiRaised > getFirstTranche().amount;
     }
 
     function getCurrentTranche(uint weiRaised) private constant returns (Tranche) {
@@ -80,9 +88,10 @@ contract AlgoryPricingStrategy is PricingStrategy, Ownable {
 
     /// @dev Calculate the current price for buy in amount.
     function calculatePrice(uint value, uint weiRaised, uint decimals) public constant returns (uint) {
-        uint multiplier = 10 ** decimals;
+        //uint multiplier = 10 ** decimals;
         uint price = getCurrentPrice(weiRaised);
-        return value.times(multiplier) / price;
+//        return value.times(multiplier) / price;
+        return value * price;
     }
 
     function() payable {

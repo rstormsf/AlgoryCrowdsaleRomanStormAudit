@@ -34,10 +34,10 @@ contract MultiSigWallet {
     uint public transactionCount;
 
     struct Transaction {
-    address destination;
-    uint value;
-    bytes data;
-    bool executed;
+        address destination;
+        uint value;
+        bytes data;
+        bool executed;
     }
 
     /*

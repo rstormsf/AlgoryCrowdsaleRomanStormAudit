@@ -18,31 +18,15 @@
       "constant": true,
       "inputs": [
         {
-          "name": "value",
-          "type": "uint256"
-        },
-        {
           "name": "weiRaised",
-          "type": "uint256"
-        },
-        {
-          "name": "tokensSold",
-          "type": "uint256"
-        },
-        {
-          "name": "msgSender",
-          "type": "address"
-        },
-        {
-          "name": "decimals",
           "type": "uint256"
         }
       ],
-      "name": "calculatePrice",
+      "name": "isPresaleFull",
       "outputs": [
         {
-          "name": "tokenAmount",
-          "type": "uint256"
+          "name": "",
+          "type": "bool"
         }
       ],
       "payable": false,
@@ -68,17 +52,51 @@
     },
     {
       "constant": true,
-      "inputs": [
-        {
-          "name": "purchaser",
-          "type": "address"
-        }
-      ],
-      "name": "isPresalePurchase",
+      "inputs": [],
+      "name": "getPresaleMaxValue",
       "outputs": [
         {
           "name": "",
-          "type": "bool"
+          "type": "uint256"
+        }
+      ],
+      "payable": false,
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [
+        {
+          "name": "value",
+          "type": "uint256"
+        },
+        {
+          "name": "weiRaised",
+          "type": "uint256"
+        },
+        {
+          "name": "decimals",
+          "type": "uint256"
+        }
+      ],
+      "name": "calculatePrice",
+      "outputs": [
+        {
+          "name": "tokenAmount",
+          "type": "uint256"
+        }
+      ],
+      "payable": false,
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "presaleMaxValue",
+      "outputs": [
+        {
+          "name": "",
+          "type": "uint256"
         }
       ],
       "payable": false,
@@ -88,5 +106,5 @@
   "unlinked_binary": "0x",
   "networks": {},
   "schema_version": "0.0.5",
-  "updated_at": 1508182811754
+  "updated_at": 1508520171913
 }

@@ -1,10 +1,13 @@
 
-let allocatedCrowdsaleContract = artifacts.require('./crowdsale/AllocatedCrowdsale.sol');
+let crowdsaleContract = artifacts.require('./crowdsale/AlgoryCrowdsale.sol');
+let tokenContract = artifacts.require('./token/AlgoryToken.sol');
 
 module.exports = function() {
-    let allocatedCrowdsaleAddress = '0xcf9afa9b3b76e84f61f3ed8a1d32cfec921213af';
-    let finalizeAgentAddress = '0x2a9ddae54b78b3b8a0b8a6625ce50b8b6774545e';
-    let crowdsale = allocatedCrowdsaleContract.at(allocatedCrowdsaleAddress);
+    let crowdsaleAddress = '0xb4275db462b2cfbf0f407a382f0e36c534520b69';
+    let tokenAddress = '0x1023848a15b05fb3ce1283367f3f75900db31d69';
+    let finalizeAgentAddress = '0x98a4b80ceb9904b501fa9bdfea51c629eef2eb57';
+    let crowdsale = crowdsaleContract.at(crowdsaleAddress);
+    let token = tokenContract.at(tokenAddress);
 
     crowdsale.setFinalizeAgent(finalizeAgentAddress).then(function () {
         crowdsale.finalizeAgent().then(function (address) {
@@ -14,6 +17,11 @@ module.exports = function() {
                 console.log('An error has occurred')
             }
         })
+    })
+    .then(function () {
+       token.setReleaseAgent(finalizeAgentAddress).then(function () {
+           console.log('Finalize Agent has been set as AlgoryToken ReleaseAgent')
+       });
     });
 
 };

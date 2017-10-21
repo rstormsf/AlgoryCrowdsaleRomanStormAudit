@@ -1,9 +1,9 @@
 pragma solidity ^0.4.15;
 
 import './FinalizeAgent.sol';
+import './AlgoryCrowdsale.sol';
 import '../math/SafeMathLib.sol';
 import '../token/AlgoryToken.sol';
-import './AlgoryCrowdsale.sol';
 
 /**
  * At the end of the successful crowdsale unlock tokens transfer.

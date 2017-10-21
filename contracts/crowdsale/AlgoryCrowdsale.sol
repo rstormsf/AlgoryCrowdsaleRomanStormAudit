@@ -1,12 +1,12 @@
 pragma solidity ^0.4.15;
 
-import '../ownership/Haltable.sol';
+import './InvestmentPolicyCrowdsale.sol';
 import './PricingStrategy.sol';
 import '../token/FractionalERC20.sol';
 import './FinalizeAgent.sol';
 import '../math/SafeMathLib.sol';
 
-contract AlgoryCrowdsale is Haltable {
+contract AlgoryCrowdsale is InvestmentPolicyCrowdsale {
 
     /* Max investment count when we are still allowed to change the multisig address */
     uint constant public MAX_INVESTMENTS_BEFORE_MULTISIG_CHANGE = 5;
@@ -58,18 +58,6 @@ contract AlgoryCrowdsale is Haltable {
     /* Allow investors refund theirs money */
     bool public allowRefund = false;
 
-    /* Do we need to have unique contributor id for each customer */
-    bool public requireCustomerId = false;
-
-    /**
-      * Do we verify that contributor has been cleared on the server side (accredited investors only).
-      * This method was first used in FirstBlood crowdsale to ensure all contributors have accepted terms on sale (on the web).
-      */
-    bool public requiredSignedAddress = false;
-
-    /* Server side address that signed allowed contributors (Ethereum addresses) that can participate the crowdsale */
-    address public signerAddress;
-
     /** How much ETH each address has invested to this crowdsale */
     mapping (address => uint256) public investedAmountOf;
 
@@ -80,10 +68,7 @@ contract AlgoryCrowdsale is Haltable {
     mapping (address => uint) public earlyParticipantWhitelist;
 
     /** How many wei we have in whitelist declarations*/
-    uint whitelistWeiRaised = 0;
-
-    /** This is for manual testing for the interaction from owner wallet. You can set it to any value and inspect this in blockchain explorer to see that crowdsale interaction works. */
-    uint public ownerTestValue;
+    uint public whitelistWeiRaised = 0;
 
     /* The party who holds the full token pool and has approve()'ed tokens for this crowdsale */
     address public beneficiary;
@@ -105,41 +90,38 @@ contract AlgoryCrowdsale is Haltable {
     // Refund was processed for a contributor
     event Refund(address investor, uint weiAmount);
 
-    // The rules were changed what kind of investments we accept
-    event InvestmentPolicyChanged(bool newRequireCustomerId, bool newRequiredSignedAddress, address newSignerAddress);
-
     // Address early participation whitelist status changed
-    event Whitelisted(address addr, bool status);
+    event Whitelisted(address addr, uint value);
 
-    // Crowdsale end time has been changed
-    event EndsAtChanged(uint newEndsAt);
-
-    // Presale start time has been changed
-    event PresaleStartsAtChanged(uint newPresaleStartsAt);
+    // Crowdsale time boundary has changed
+    event TimeBoundaryChanged(string timeBoundary, uint timestamp);
 
     //
     // Modifiers
     //
     /** Modified allowing execution only if the crowdsale is currently running.  */
     modifier inState(State state) {
-        if(getState() != state) revert();
+        require(getState() == state);
         _;
     }
 
-    function AlgoryCrowdsale(address _token, address _beneficiary, PricingStrategy _pricingStrategy, address _multisigWallet, uint _presaleStart, uint _start, uint _end) {
+    function AlgoryCrowdsale(address _token, address _beneficiary, PricingStrategy _pricingStrategy, address _multisigWallet, uint _presaleStart, uint _start, uint _end) public {
         owner = msg.sender;
         token = FractionalERC20(_token);
         beneficiary = _beneficiary;
-        setPricingStrategy(_pricingStrategy);
-        multisigWallet = _multisigWallet;
+
         presaleStartsAt = _presaleStart;
         startsAt = _start;
         endsAt = _end;
 
-        if(beneficiary == 0 || token == 0 || multisigWallet == 0 || start == 0 || presaleStart == 0 || end == 0) revert();
-        if(startsAt >= endsAt) revert();
-        if(presaleStartsAt >= startsAt) revert();
-        if(token.allowance(beneficiary, owner) != token.totalSupply()) revert();
+        require(now < presaleStartsAt && presaleStartsAt <= startsAt && startsAt < endsAt);
+
+        setPricingStrategy(_pricingStrategy);
+        setMultisigWallet(_multisigWallet);
+
+        require (beneficiary != 0x0 && address(token) != 0x0);
+        //Crowdsale can be able to transfer all tokens from beneficiary
+        assert(token.allowance(owner, beneficiary) == token.totalSupply());
 
         preallocateTokens();
     }
@@ -149,49 +131,6 @@ contract AlgoryCrowdsale is Haltable {
      */
     function() payable {
         invest(msg.sender);
-    }
-
-    /**
-     * Invest to tokens, recognize the payer and clear his address.
-     */
-    function buyWithSignedAddress(uint128 customerId, uint8 v, bytes32 r, bytes32 s) public payable {
-        investWithSignedAddress(msg.sender, customerId, v, r, s);
-    }
-
-    /**
-     * Invest to tokens, recognize the payer.
-     *
-     */
-    function buyWithCustomerId(uint128 customerId) public payable {
-        investWithCustomerId(msg.sender, customerId);
-    }
-
-    /**
-     * Allow anonymous contributions to this crowdsale.
-     */
-    function invest(address addr) public payable {
-        if(requireCustomerId) revert(); // Crowdsale needs to track partipants for thank you email
-        if(requiredSignedAddress) revert(); // Crowdsale allows only server-side signed participants
-        investInternal(addr, 0);
-    }
-
-    /**
-     * Allow anonymous contributions to this crowdsale.
-     */
-    function investWithSignedAddress(address addr, uint128 customerId, uint8 v, bytes32 r, bytes32 s) public payable {
-        bytes32 hash = sha256(addr);
-        if (ecrecover(hash, v, r, s) != signerAddress) revert();
-        if(customerId == 0) revert();  // UUIDv4 sanity check
-        investInternal(addr, customerId);
-    }
-
-    /**
-     * Track who is the customer making the payment so we can send thank you email.
-     */
-    function investWithCustomerId(address addr, uint128 customerId) public payable {
-        if(requiredSignedAddress) revert(); // Crowdsale allows only server-side signed participants
-        if(customerId == 0) revert();  // UUIDv4 sanity check
-        investInternal(addr, customerId);
     }
 
     /**
@@ -206,47 +145,30 @@ contract AlgoryCrowdsale is Haltable {
         if(address(finalizeAgent) != 0) {
             finalizeAgent.finalizeCrowdsale();
         }
-//        token.releaseTokenTransfer();
         finalized = true;
     }
-
-    /**
-     * Set policy if all investors must be cleared on the server side first.
-     *
-     * This is e.g. for the accredited investor clearing.
-     *
-     */
-    function setRequireSignedAddress(bool value, address _signerAddress) onlyOwner {
-        requiredSignedAddress = value;
-        signerAddress = _signerAddress;
-        InvestmentPolicyChanged(requireCustomerId, requiredSignedAddress, signerAddress);
-    }
-
     /**
      * Allow addresses to do early participation.
      */
-    function setEarlyParticipantWhitelist(address addr, uint value) onlyOwner {
-        if (value == 0) revert();
-        if (!pricingStrategy.isPresaleFull()) revert();
-        if (value > pricingStrategy.getPresaleMaxValue()) revert();
-        earlyParticipantWhitelist[addr] = value;
-        whitelistWeiRaised.plus(value);
-        Whitelisted(addr, value);
+    function setEarlyParticipantWhitelist(address participant, uint value) onlyOwner {
+        require(value != 0 && participant != 0x0);
+        require(value <= pricingStrategy.getPresaleMaxValue());
+        assert(!pricingStrategy.isPresaleFull(presaleWeiRaised));
+        earlyParticipantWhitelist[participant] = value;
+        whitelistWeiRaised = whitelistWeiRaised.plus(value);
+        Whitelisted(participant, value);
     }
 
     /**
      * Set array of address and values to whitelist
      */
-    function loadEarlyParticipantsWhitelist(address[] toArray, uint[] valueArray) onlyOwner() {
-        uint tokens = 0;
-        address to = 0x0;
+    function loadEarlyParticipantsWhitelist(address[] participantsArray, uint[] valuesArray) onlyOwner() public {
+        address participant = 0x0;
         uint value = 0;
-        uint tokenAmount = 0;
-
-        for (uint i = 0; i < toArray.length; i++) {
-            to = toArray[i];
-            value = valueArray[i];
-            setEarlyParticipantWhitelist(to, value);
+        for (uint i = 0; i < participantsArray.length; i++) {
+            participant = participantsArray[i];
+            value = valuesArray[i];
+            setEarlyParticipantWhitelist(participant, value);
         }
     }
 
@@ -255,9 +177,10 @@ contract AlgoryCrowdsale is Haltable {
      *
      * Design choice: no state restrictions on setting this, so that we can fix fat finger mistakes.
      */
-    function setFinalizeAgent(FinalizeAgent addr) onlyOwner {
-        finalizeAgent = addr;
-        if(!finalizeAgent.isFinalizeAgent()) revert();
+    function setFinalizeAgent(FinalizeAgent agent) onlyOwner public {
+        finalizeAgent = agent;
+        require(finalizeAgent.isFinalizeAgent());
+        require(finalizeAgent.isSane());
     }
 
     /**
@@ -266,76 +189,45 @@ contract AlgoryCrowdsale is Haltable {
      * Design choice: no state restrictions on the set, so that we can fix fat finger mistakes.
      */
     function setPricingStrategy(PricingStrategy _pricingStrategy) onlyOwner {
+        State state = getState();
+        if (state == State.PreFunding || state == State.Funding) {
+            assert(halted);
+        }
         pricingStrategy = _pricingStrategy;
-        if(!pricingStrategy.isPricingStrategy()) revert();
+        require(pricingStrategy.isPricingStrategy());
+        require(pricingStrategy.isSane(address(this)));
     }
 
-    /**
-     * Allow to change the team multisig address in the case of emergency.
-     *
-     * This allows to save a deployed crowdsale wallet in the case the crowdsale has not yet begun
-     * (we have done only few test transactions). After the crowdsale is going
-     * then multisig address stays locked for the safety reasons.
-     */
-    function setMultisig(address addr) public onlyOwner {
-        if(investorCount > MAX_INVESTMENTS_BEFORE_MULTISIG_CHANGE) revert();
-        multisigWallet = addr;
+    function setMultisigWallet(address wallet) public onlyOwner {
+        require(wallet != 0x0);
+        assert(investorCount <= MAX_INVESTMENTS_BEFORE_MULTISIG_CHANGE);
+        multisigWallet = wallet;
     }
 
-    /**
-     * Set policy do we need to have server-side customer ids for the investments.
-     *
-     */
-    function setRequireCustomerId(bool value) onlyOwner {
-        requireCustomerId = value;
-        InvestmentPolicyChanged(requireCustomerId, requiredSignedAddress, signerAddress);
+    function setPresaleStartsAt(uint presaleStart) inState(State.Preparing) onlyOwner {
+        require(presaleStart <= startsAt && presaleStart < endsAt);
+        presaleStartsAt = presaleStart;
+        TimeBoundaryChanged('presaleStartsAt', presaleStartsAt);
     }
 
-
-    /** This is for manual testing of multisig wallet interaction */
-    function setOwnerTestValue(uint val) onlyOwner {
-        ownerTestValue = val;
+    function setStartsAt(uint start) onlyOwner {
+        require(start > now && start > presaleStartsAt && start < endsAt);
+        State state = getState();
+        assert(state == State.Preparing || state == State.PreFunding);
+        startsAt = start;
+        TimeBoundaryChanged('startsAt', startsAt);
     }
 
-    /**
-     * Allow crowdsale owner to close early or extend the crowdsale.
-     *
-     * This is useful e.g. for a manual soft cap implementation:
-     * - after X amount is reached determine manual closing
-     *
-     * This may put the crowdsale to an invalid state,
-     * but we trust owners know what they are doing.
-     *
-     */
-    function setEndsAt(uint time) onlyOwner {
-        if(now > time) revert(); // Don't change past
-        endsAt = time;
-        EndsAtChanged(endsAt);
+    function setEndsAt(uint end) onlyOwner {
+        require(end > startsAt && end > startsAt && end > presaleStartsAt);
+        endsAt = end;
+        TimeBoundaryChanged('endsAt', endsAt);
     }
 
-    function setPresaleStartsAt(uint time) inState(State.Preparing) onlyOwner {
-        if(time > now) revert(); // Allow only if presale is not started
-        presaleStartsAt = time;
-        PresaleStartsAtChanged(presaleStartsAt);
-    }
 
     /** This is for manual allow refunding */
-    function allowRefunding(bool val) onlyOwner {
+    function allowRefunding(bool val) inState(State.Failure) onlyOwner {
         allowRefund = val;
-    }
-
-    /**
-     * Check if the contract relationship looks good.
-     */
-    function isFinalizerSane() public constant returns (bool sane) {
-        return finalizeAgent.isSane();
-    }
-
-    /**
-     * Check if the contract relationship looks good.
-     */
-    function isPricingSane() public constant returns (bool sane) {
-        return pricingStrategy.isSane(address(this));
     }
 
     /** Interface marker. */
@@ -353,9 +245,10 @@ contract AlgoryCrowdsale is Haltable {
         else if (address(finalizeAgent) == 0) return State.Preparing;
         else if (!finalizeAgent.isSane()) return State.Preparing;
         else if (!pricingStrategy.isSane(address(this))) return State.Preparing;
-        else if (presaleStartsAt >= block.timestamp && block.timestamp < startsAt) return State.PreFunding;
-        else if (block.timestamp <= endsAt && !isCrowdsaleFull()) return State.Funding;
-        else if (!allowRefund) return State.Success;
+        else if (block.timestamp < presaleStartsAt) return State.Preparing;
+        else if (block.timestamp >= presaleStartsAt && block.timestamp < startsAt) return State.PreFunding;
+        else if (block.timestamp <= endsAt && block.timestamp >= startsAt && !isCrowdsaleFull()) return State.Funding;
+        else if (!allowRefund && block.timestamp > endsAt && isCrowdsaleFull()) return State.Success;
         else if (allowRefund && weiRaised > 0 && loadedRefund >= weiRaised) return State.Refunding;
         else return State.Failure;
     }
@@ -363,7 +256,7 @@ contract AlgoryCrowdsale is Haltable {
     /**
      * Called from invest() to confirm if the current investment does not break our cap rule.
      */
-    function isBreakingCap(uint tokenAmount) constant returns (bool limitBroken) {
+    function isBreakingCap(uint tokenAmount) private constant returns (bool limitBroken) {
         return tokenAmount > getTokensLeft();
     }
 
@@ -371,7 +264,7 @@ contract AlgoryCrowdsale is Haltable {
      * Get the amount of unsold tokens allocated to this contract;
      */
     function getTokensLeft() public constant returns (uint) {
-        return token.allowance(owner, this);
+        return token.allowance(owner, beneficiary);
     }
 
     /**
@@ -387,7 +280,7 @@ contract AlgoryCrowdsale is Haltable {
      * The team can transfer the funds back on the smart contract in the case when is set refunding mode
      */
     function loadRefund() public payable inState(State.Failure) {
-        if(msg.value == 0) revert();
+        require(msg.value != 0);
         loadedRefund = loadedRefund.plus(msg.value);
     }
 
@@ -398,12 +291,13 @@ contract AlgoryCrowdsale is Haltable {
      * and not through this contract.
      */
     function refund() public inState(State.Refunding) {
+        assert(allowRefund);
         uint256 weiValue = investedAmountOf[msg.sender];
-        if (weiValue == 0) revert();
+        assert(weiValue != 0);
         investedAmountOf[msg.sender] = 0;
         weiRefunded = weiRefunded.plus(weiValue);
         Refund(msg.sender, weiValue);
-        if (!msg.sender.send(weiValue)) revert();
+        assert(msg.sender.send(weiValue));
     }
 
     /**
@@ -416,18 +310,19 @@ contract AlgoryCrowdsale is Haltable {
      * @param customerId (optional) UUID v4 to track the successful payments on the server side
      *
      */
-    function investInternal(address receiver, uint128 customerId) stopInEmergency private {
+    function investInternal(address receiver, uint128 customerId) stopInEmergency internal {
 
         if (getState() == State.PreFunding) {
-            if (earlyParticipantWhitelist[receiver] > 0) revert();
-            if (pricingStrategy.isPresaleFull(presaleWeiRaised)) revert();
+            assert(earlyParticipantWhitelist[receiver] > 0);
+            assert(!pricingStrategy.isPresaleFull(presaleWeiRaised));
         } else if(getState() != State.Funding) {
             revert();
         }
 
         uint weiAmount = msg.value;
-        uint tokenAmount = pricingStrategy.calculatePrice(weiAmount, weiRaised, token.decimals());
-
+        //TODO !!!!!!!!!!!!!!!!!!!!
+//        uint tokenAmount = pricingStrategy.calculatePrice(weiAmount, weiRaised, token.decimals());
+        uint tokenAmount = 7777;
         if (tokenAmount == 0) revert();
 
         if (investedAmountOf[receiver] == 0) {
@@ -441,14 +336,16 @@ contract AlgoryCrowdsale is Haltable {
         tokensSold = tokensSold.plus(tokenAmount);
 
         if (getState() == State.PreFunding) {
-            if (presaleWeiRaised > earlyParticipantWhitelist[receiver]) revert();
+//            asert(presaleWeiRaised > earlyParticipantWhitelist[receiver]);
             presaleWeiRaised = presaleWeiRaised.plus(weiAmount);
         }
 
-        if(isBreakingCap(tokenAmount)) revert();
+        assert(!isBreakingCap(tokenAmount));
 
-        assignTokens(receiver, tokenAmount);
-        if(!multisigWallet.send(weiAmount)) revert();
+        //TODO !!!!!!!!!!!!!!!!!!!
+//        assignTokens(receiver, tokenAmount);
+
+        assert(multisigWallet.send(weiAmount));
 
         Invested(receiver, weiAmount, tokenAmount, customerId);
     }
@@ -466,7 +363,7 @@ contract AlgoryCrowdsale is Haltable {
      * Preallocate tokens for company, bounty and devs
      */
     function preallocateTokens() private {
-        //TODO:
+//        TODO:
 //        assignTokens('address1', 7777);
 //        assignTokens('address2', 7777);
 //        assignTokens('address3', 7777);

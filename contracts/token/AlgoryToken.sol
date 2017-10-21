@@ -14,27 +14,21 @@ contract AlgoryToken is FractionalERC20, ReleasableToken, UpgradeableToken, Burn
     /** Name and symbol were updated. */
     event UpdatedTokenInformation(string newName, string newSymbol);
 
-    string public name;
-    string public symbol;
-    uint public decimals;
+    string public name = 'Algory';
+    string public symbol = 'ALG';
+    uint public decimals = 18;
 
     /**
      * Construct the token.
      *
      * This token must be created through a team multisig wallet, so that it is owned by that wallet.
      *
-     * @param _name Token name
-     * @param _symbol Token symbol - should be all caps
      * @param _initialSupply How many tokens we start with
-     * @param _decimals Number of decimal places
      */
-    function AlgoryToken(string _name, string _symbol, uint _initialSupply, uint _decimals) UpgradeableToken(msg.sender) {
+    function AlgoryToken(uint _initialSupply) UpgradeableToken(msg.sender) {
 
         owner = msg.sender;
-        name = _name;
-        symbol = _symbol;
         totalSupply = _initialSupply;
-        decimals = _decimals;
 
         // Create initially all balance on the team multisig
         balances[owner] = totalSupply;

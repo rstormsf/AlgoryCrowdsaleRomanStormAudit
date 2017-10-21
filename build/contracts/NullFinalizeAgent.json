@@ -1,0 +1,66 @@
+{
+  "contract_name": "NullFinalizeAgent",
+  "abi": [
+    {
+      "constant": false,
+      "inputs": [],
+      "name": "finalizeCrowdsale",
+      "outputs": [],
+      "payable": false,
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "isFinalizeAgent",
+      "outputs": [
+        {
+          "name": "",
+          "type": "bool"
+        }
+      ],
+      "payable": false,
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "isSane",
+      "outputs": [
+        {
+          "name": "",
+          "type": "bool"
+        }
+      ],
+      "payable": false,
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "crowdsale",
+      "outputs": [
+        {
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "payable": false,
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "name": "_crowdsale",
+          "type": "address"
+        }
+      ],
+      "payable": false,
+      "type": "constructor"
+    }
+  ],
+  "unlinked_binary": "0x6060604052341561000f57600080fd5b60405160208061024b833981016040528080519150505b60008054600160a060020a031916600160a060020a0383161790555b505b6101f8806100536000396000f300606060405263ffffffff7c01000000000000000000000000000000000000000000000000000000006000350416630bf318a3811461005e578063614cb9041461007357806382771c8e1461009a5780639c1e03a0146100c1575b600080fd5b341561006957600080fd5b6100716100fd565b005b341561007e57600080fd5b610086610100565b604051901515815260200160405180910390f35b34156100a557600080fd5b610086610106565b604051901515815260200160405180910390f35b34156100cc57600080fd5b6100d46101b0565b60405173ffffffffffffffffffffffffffffffffffffffff909116815260200160405180910390f35b5b565b60015b90565b6000805473ffffffffffffffffffffffffffffffffffffffff30811691166321d5c0f683604051602001526040518163ffffffff167c0100000000000000000000000000000000000000000000000000000000028152600401602060405180830381600087803b151561017857600080fd5b6102c65a03f1151561018957600080fd5b5050506040518051905073ffffffffffffffffffffffffffffffffffffffff161490505b90565b60005473ffffffffffffffffffffffffffffffffffffffff16815600a165627a7a723058201a0cfa36666b96ef0dd82954e2eb42e5c24e7ff1f627d6d3f7e2971e46b8ab120029",
+  "networks": {},
+  "schema_version": "0.0.5",
+  "updated_at": 1508358622753
+}

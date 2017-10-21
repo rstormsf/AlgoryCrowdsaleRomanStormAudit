@@ -38,13 +38,6 @@ contract('AlgoryToken', function(accounts) {
             assert.notEqual(upgradeMaster.valueOf(), accounts[2], "upgrade master equal wrong address");
         });
     });
-    it("should set expected minting finished flag after deploy", function() {
-        return token.deployed().then(function(instance) {
-            return instance.mintingFinished.call();
-        }).then(function(mintingFinished) {
-            assert.equal(mintingFinished.valueOf(), true, "minting finished flag is not true");
-        });
-    });
     it("should set unreleased flag after deploy", function() {
         return token.deployed().then(function(instance) {
             return instance.released.call();

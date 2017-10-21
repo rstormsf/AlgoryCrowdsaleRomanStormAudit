@@ -2,7 +2,7 @@ pragma solidity ^0.4.15;
 
 import './FinalizeAgent.sol';
 import '../math/SafeMathLib.sol';
-import '../AlgoryCrowdsale.sol';
+import './AlgoryCrowdsale.sol';
 
 /**
  * A finalize agent that does nothing.

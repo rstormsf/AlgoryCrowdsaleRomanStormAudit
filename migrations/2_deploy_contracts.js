@@ -1,9 +1,11 @@
 let multiSigWallet = artifacts.require('./wallet/MultiSigWallet.sol');
 let token = artifacts.require('./token/AlgoryToken.sol');
 let pricingStrategy = artifacts.require('./crowdsale/AlgoryPricingStrategy.sol');
-let allocatedCrowdsale = artifacts.require('./crowdsale/AllocatedCrowdsale.sol');
+let crowdsale = artifacts.require('./crowdsale/AlgoryCrowdsale.sol');
 let finalizeAgent = artifacts.require('./crowdsale/AlgoryFinalizeAgent.sol');
 let safeMathLib = artifacts.require('./math/SafeMathLib.sol');
+
+// const Pudding = require('ether-pudding');
 
 function latestTime() {
     return web3.eth.getBlock('latest').timestamp;
@@ -24,58 +26,104 @@ module.exports = function(deployer, network, accounts) {
     const requiredConfirmations = 1;
 
     // Token
-    const name = 'Algory';
-    const symbol = 'ALG';
+    let algory;
+    let beneficiaryApproved = false;
     const totalSupply = 120000000;
-    const decimals = 18;
-    const mintable = false;
-
-    // Pricing Strategy
-    const tranches = [0, 2000, 100000, 40000, 50000000, 0];
-    const preicoMaxValue = 10000;
 
     // Crowdsale
-    const beneficiary = '0x10e2068d2c0c58d4affa26f77f7ec876e7496526';
-    const start = latestTime() + duration.minutes(1);
-    const end = start + duration.minutes(10);
+    let algoryCrowdsale;
+    const beneficiary = accounts[0];
+
+    const presaleStart = latestTime() + duration.seconds(10);
+    const start = presaleStart + duration.minutes(10);
+    const end = start + duration.hours(1);
 
     // Deploy MultiSigWallet
-    return deployer.deploy(multiSigWallet, accounts, requiredConfirmations)
-    // Deploy SafeMathLib
+    return deployer.deploy(multiSigWallet, [accounts[0], accounts[1], accounts[2]], requiredConfirmations)
+    //Deploy SafeMathLib
     .then(function() {
         return deployer.deploy(safeMathLib)
     })
-    // Link SafeMathLib
+    //Link SafeMathLib
     .then(function() {
-        deployer.link(safeMathLib, token);
-        deployer.link(safeMathLib, pricingStrategy);
-        deployer.link(safeMathLib, allocatedCrowdsale);
-        deployer.link(safeMathLib, finalizeAgent);
+        return deployer.link(safeMathLib, [crowdsale, pricingStrategy, token]);
     })
     // Deploy Token
     .then(function() {
-        return deployer.deploy(token, name, symbol, totalSupply, decimals, mintable);
+        return deployer.deploy(token, totalSupply);
     })
-    //Deploy Pricing Strategy
+    // Approve crowdsale to transfer tokens from beneficiary
+    .then(function () {
+        algory = token.at(token.address);
+        return algory.approve(beneficiary, totalSupply);
+    })
+    .then(function (approved) {
+        return beneficiaryApproved = approved;
+    })
+    // Deploy Pricing Strategy
     .then(function() {
-        return deployer.deploy(pricingStrategy, tranches, preicoMaxValue);
+        return deployer.deploy(pricingStrategy);
     })
-    //Deploy Crowdsale
+    // Deploy Crowdsale
     .then(function() {
         return deployer.deploy(
-            allocatedCrowdsale,
+            crowdsale,
             token.address,
+            beneficiary,
             pricingStrategy.address,
             multiSigWallet.address,
+            presaleStart,
             start,
-            end,
-            beneficiary
+            end
         );
     })
     //Deploy Finalize Agent
     .then(function() {
-        return deployer.deploy(finalizeAgent, token.address, allocatedCrowdsale.address, multiSigWallet.address);
-    });
-
+        algoryCrowdsale = crowdsale.at(crowdsale.address);
+        return deployer.deploy(finalizeAgent, token.address, crowdsale.address);
+    })
+    .then(function() {
+        console.log("\n\n\t----------------------- DEPLOYED CONTRACTS -----------------------\n\n");
+        console.log("\tCrowdsale address: " + crowdsale.address);
+        console.log("\tAlgory Token address: " + algory.address);
+        console.log("\tMultisig Wallet address: " + multiSigWallet.address);
+        console.log("\tPricing Strategy address: " + pricingStrategy.address);
+        console.log("\tFinalize Agent address: " + finalizeAgent.address + "\n");
+        if (beneficiaryApproved) {
+            console.log("\tBeneficiary address: "+beneficiary+' has approved total supply: '+totalSupply+" ALG\n");
+        } else {
+            console.log("Beneficiary address has not approved\n");
+        }
+        console.log("\tCrowdsale constructor parameters: "
+            + '"'+algory.address+'",'
+            + '"'+beneficiary+'",'
+            + '"'+pricingStrategy.address+'",'
+            + '"'+multiSigWallet.address+'",'
+            + +presaleStart+','
+            + +start+','
+            + +end+''
+            + "\n\n"
+        );
+    })
+    //Set Finalize Agent to Crowdsale
+    // .then(function () {
+    //     return algoryCrowdsale.setFinalizeAgent(finalizeAgent.address);
+    // })
+    // .then(function () {
+    //     return algoryCrowdsale.finalizeAgent();
+    // })
+    // .then(function (address) {
+    //     if (address == finalizeAgent.address) {
+    //         console.log("\tFinalize Agent has been set at: "+address)
+    //     } else {
+    //         console.log("\tAn error has occurred")
+    //     }
+    // })
+    // //Set Finalize Agent as ReleaseAgent in Token
+    // .then(function () {
+    //     algory.setReleaseAgent(finalizeAgent.address).then(function () {
+    //         console.log("\tFinalize Agent has been set as AlgoryToken ReleaseAgent")
+    //     });
+    // });
 };
 
