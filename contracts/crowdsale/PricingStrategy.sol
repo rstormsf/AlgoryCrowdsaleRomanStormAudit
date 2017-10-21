@@ -21,5 +21,5 @@ contract PricingStrategy {
 
   function isPresaleFull(uint weiRaised) public constant returns (bool);
 
-  function calculatePrice(uint value, uint weiRaised, uint decimals) public constant returns (uint tokenAmount);
+  function getAmountOfTokens(uint value, uint weiRaised) public constant returns (uint tokensAmount);
 }

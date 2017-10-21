@@ -28,7 +28,7 @@ module.exports = function(deployer, network, accounts) {
     // Token
     let algory;
     let beneficiaryApproved = false;
-    const totalSupply = 120000000;
+    const totalSupply = 120000000 * 10**18;
 
     // Crowdsale
     let algoryCrowdsale;

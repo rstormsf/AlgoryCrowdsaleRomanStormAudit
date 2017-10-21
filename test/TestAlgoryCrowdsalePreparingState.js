@@ -199,6 +199,13 @@ contract('Test Algory Crowdsale Preparing State', function(accounts) {
                 })
             });
     });
+    it("shouldn't set participant to whitelist with exceeded value", function () {
+        let maxValue = ether(300);
+        let participant = '0x665465456'; let value = maxValue + ether(1);
+        return crowdsale.setEarlyParticipantWhitelist(participant, value).catch(function (error) {
+            assert.ok(error, 'Participant with exceeded value can set');
+        })
+    });
     it("should load participants to whitelist from array", function () {
         let participantsAddress = [
             '0x11', '0x222', '0x333', '0x444', '0x555'

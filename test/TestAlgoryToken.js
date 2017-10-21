@@ -1,11 +1,12 @@
 let token = artifacts.require('./token/AlgoryToken.sol');
 
 contract('AlgoryToken', function(accounts) {
+    const totalSupply = 120000000 * 10**18;
     it("should set expected total supply after deploy", function() {
         return token.deployed().then(function(instance) {
             return instance.totalSupply.call();
         }).then(function(totalSupply) {
-            assert.equal(totalSupply.valueOf(), 120000000, "total supply does't equal 12000000");
+            assert.equal(totalSupply.valueOf(), totalSupply, "total supply does't equal 12000000");
         });
     });
     it("should set expected name after deploy", function() {
@@ -64,7 +65,7 @@ contract('AlgoryToken', function(accounts) {
         return token.deployed().then(function(instance) {
             return instance.balanceOf(accounts[0]);
         }).then(function(balance) {
-            assert.equal(balance.valueOf(), 120000000, accounts[0] + " has no 120000000 ALG");
+            assert.equal(balance.valueOf(), totalSupply, accounts[0] + " has no 120000000 ALG");
         });
     });
 });

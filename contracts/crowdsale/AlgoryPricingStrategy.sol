@@ -15,7 +15,7 @@ contract AlgoryPricingStrategy is PricingStrategy, Ownable {
         // Amount in weis when this tranche becomes active
         uint amount;
         // How many tokens per wei you will get while this tranche is active
-        uint price;
+        uint rate;
     }
 
     Tranche[4] public tranches;
@@ -25,21 +25,17 @@ contract AlgoryPricingStrategy is PricingStrategy, Ownable {
 
     function AlgoryPricingStrategy() {
 
-        tranches[0].amount = 10000 ether;
-        tranches[0].price = 1200;
-//        tranches[0].price = 1200 / 1 ether;
+        tranches[0].amount = 0;
+        tranches[0].rate = 1200;
 
-        tranches[1].amount = 15000 ether;
-        tranches[1].price = 1100;
-//        tranches[1].price = 1100 / 1 ether;
+        tranches[1].amount = 10000 ether;
+        tranches[1].rate = 1100;
 
         tranches[2].amount = 25000 ether;
-        tranches[2].price = 1050;
-//        tranches[2].price = 1050 / 1 ether;
+        tranches[2].rate = 1050;
 
         tranches[3].amount = 50000 ether;
-        tranches[3].price = 1000;
-//        tranches[3].price = 1000 / 1 ether;
+        tranches[3].rate = 1000;
 
         presaleMaxValue = 300 ether;
         trancheCount = tranches.length;
@@ -49,52 +45,35 @@ contract AlgoryPricingStrategy is PricingStrategy, Ownable {
         return true;
     }
 
-    function getTranche(uint n) public constant returns (uint, uint) {
-        if (n > trancheCount) revert();
-        return (tranches[n].amount, tranches[n].price);
-    }
-
-    function getFirstTranche() private constant returns (Tranche) {
-        return tranches[0];
-    }
-
-    function getLastTranche() private constant returns (Tranche) {
-        return tranches[trancheCount-1];
-    }
-
-    function getPricingStartsAt() public constant returns (uint) {
-        return getFirstTranche().amount;
-    }
-
-    function getPricingEndsAt() public constant returns (uint) {
-        return getLastTranche().amount;
+    function getTranche(uint n) public constant returns (uint amount, uint) {
+        require(n <= trancheCount);
+        return (tranches[n].amount, tranches[n].rate);
     }
 
     function isPresaleFull(uint presaleWeiRaised) public constant returns (bool) {
-        return presaleWeiRaised > getFirstTranche().amount;
+        return presaleWeiRaised > tranches[0].amount;
     }
 
     function getCurrentTranche(uint weiRaised) private constant returns (Tranche) {
         for(uint i=0; i < tranches.length; i++) {
-            if(weiRaised < tranches[i].amount) {
+            if(weiRaised <= tranches[i].amount) {
                 return tranches[i-1];
             }
         }
+        return tranches[3];
     }
 
-    function getCurrentPrice(uint weiRaised) public constant returns (uint result) {
-        return getCurrentTranche(weiRaised).price;
+    function getCurrentRate(uint weiRaised) public constant returns (uint rate) {
+        return getCurrentTranche(weiRaised).rate;
     }
 
-    /// @dev Calculate the current price for buy in amount.
-    function calculatePrice(uint value, uint weiRaised, uint decimals) public constant returns (uint) {
-        //uint multiplier = 10 ** decimals;
-        uint price = getCurrentPrice(weiRaised);
-//        return value.times(multiplier) / price;
-        return value * price;
+    function getAmountOfTokens(uint value, uint weiRaised) public constant returns (uint tokensAmount) {
+        require(value > 0 && weiRaised > 0);
+        uint rate = getCurrentRate(weiRaised);
+        return value * rate;
     }
 
-    function() payable {
+    function() public payable {
         revert();
     }
 
