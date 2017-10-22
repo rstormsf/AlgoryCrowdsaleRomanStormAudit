@@ -24,11 +24,11 @@ contract AlgoryFinalizeAgent is FinalizeAgent {
 
     /* Can we run finalize properly */
     function isSane() public constant returns (bool) {
-        return token.releaseAgent() == address(this);
+        return token.releaseAgent() == address(this) && crowdsale.finalizeAgent() == address(this);
     }
 
     /** Called once by crowdsale finalize() if the sale was success. */
-    function finalizeCrowdsale() {
+    function finalizeCrowdsale() public {
         require(msg.sender == address(crowdsale));
 
         // Make token transferable

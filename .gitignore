@@ -6,4 +6,4 @@
 .idea/workspace.xml
 
 node_modules
-coverage
+build
