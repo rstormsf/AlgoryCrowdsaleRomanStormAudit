@@ -19,9 +19,21 @@ contract InvestmentPolicyCrowdsale is Haltable {
     event InvestmentPolicyChanged(bool newRequireCustomerId, bool newRequiredSignedAddress, address newSignerAddress);
 
     /**
+     * Set policy if all investors must be cleared on the server side first.
+     *
+     * This is e.g. for the accredited investor clearing.
+     *
+     */
+    function setRequireSignedAddress(bool value, address _signerAddress) external onlyOwner {
+        requiredSignedAddress = value;
+        signerAddress = _signerAddress;
+        InvestmentPolicyChanged(requireCustomerId, requiredSignedAddress, signerAddress);
+    }
+
+    /**
      * Invest to tokens, recognize the payer and clear his address.
      */
-    function buyWithSignedAddress(uint128 customerId, uint8 v, bytes32 r, bytes32 s) public payable {
+    function buyWithSignedAddress(uint128 customerId, uint8 v, bytes32 r, bytes32 s) external payable {
         investWithSignedAddress(msg.sender, customerId, v, r, s);
     }
 
@@ -29,7 +41,7 @@ contract InvestmentPolicyCrowdsale is Haltable {
      * Invest to tokens, recognize the payer.
      *
      */
-    function buyWithCustomerId(uint128 customerId) public payable {
+    function buyWithCustomerId(uint128 customerId) external payable {
         investWithCustomerId(msg.sender, customerId);
     }
 
@@ -47,8 +59,8 @@ contract InvestmentPolicyCrowdsale is Haltable {
      */
     function investWithSignedAddress(address addr, uint128 customerId, uint8 v, bytes32 r, bytes32 s) public payable {
         bytes32 hash = sha256(addr);
-        if (ecrecover(hash, v, r, s) != signerAddress) revert();
-        if(customerId == 0) revert();  // UUIDv4 sanity check
+        require(ecrecover(hash, v, r, s) == signerAddress);
+        require(customerId != 0);  // UUIDv4 sanity check
         investInternal(addr, customerId);
     }
 
@@ -56,29 +68,16 @@ contract InvestmentPolicyCrowdsale is Haltable {
      * Track who is the customer making the payment so we can send thank you email.
      */
     function investWithCustomerId(address addr, uint128 customerId) public payable {
-        if(requiredSignedAddress) revert(); // Crowdsale allows only server-side signed participants
-        if(customerId == 0) revert();  // UUIDv4 sanity check
+        // Crowdsale allows only server-side signed participants
+        require(requiredSignedAddress && customerId != 0);
         investInternal(addr, customerId);
     }
-
-    /**
-     * Set policy if all investors must be cleared on the server side first.
-     *
-     * This is e.g. for the accredited investor clearing.
-     *
-     */
-    function setRequireSignedAddress(bool value, address _signerAddress) onlyOwner {
-        requiredSignedAddress = value;
-        signerAddress = _signerAddress;
-        InvestmentPolicyChanged(requireCustomerId, requiredSignedAddress, signerAddress);
-    }
-
 
     /**
      * Set policy do we need to have server-side customer ids for the investments.
      *
      */
-    function setRequireCustomerId(bool value) onlyOwner {
+    function setRequireCustomerId(bool value) onlyOwner external{
         requireCustomerId = value;
         InvestmentPolicyChanged(requireCustomerId, requiredSignedAddress, signerAddress);
     }

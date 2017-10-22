@@ -7,7 +7,9 @@ let finalizeAgentContract = artifacts.require('./crowdsale/AlgoryFinalizeAgent.s
 
 contract('Test Algory Crowdsale Initializing', function(accounts) {
     let crowdsale, algory, multisigWallet, pricingStrategy, finalizeAgent;
-    let beneficiary = accounts[0];
+    const beneficiary = accounts[0];
+    const totalSupply = 120000000 * 10**18;
+
     it("prepare suite by assign deployed contracts", function () {
         return crowdsaleContract.deployed()
             .then(function(instance) {crowdsale = instance})
@@ -15,6 +17,7 @@ contract('Test Algory Crowdsale Initializing', function(accounts) {
             .then(function() {return multisigWalletContract.deployed()}).then(function (instance) { multisigWallet = instance})
             .then(function() {return pricingStrategyContract.deployed()}).then(function (instance) { pricingStrategy = instance})
             .then(function() {return finalizeAgentContract.deployed()}).then(function (instance) { finalizeAgent = instance; return 1;})
+            .then(function () {return algory.approve(crowdsale.address, totalSupply)})
     });
     it("should set expected owner, token, beneficiary, pricing strategy, multisig wallet, presale start, crowdsale start, crowdsale end", function() {
         let owner, tokenAddress, beneficiaryAddress, pricingStrategyAddress, multisigWalletAddress, presaleStart, start, end;
@@ -59,13 +62,7 @@ contract('Test Algory Crowdsale Initializing', function(accounts) {
                 assert.ok(!finalized, 'Contract is finalized');
             });
     });
-    it("shouldn't be full", function () {
-        return crowdsale.isCrowdsaleFull()
-            .then(function (full) {
-                assert.ok(!full, 'Contract is full');
-            });
-    });
-    it("should has all token to sell", function () {
+    it("should has all token for sell", function () {
         let tokensLeft = 0;
         return crowdsale.getTokensLeft()
             .then(function (tokens) {
@@ -75,6 +72,13 @@ contract('Test Algory Crowdsale Initializing', function(accounts) {
                 return algory.totalSupply();
             }).then(function (total) {
                 assert.equal(tokensLeft.toNumber(), total.toNumber(), 'Tokens left not equal total supply');
+            })
+    });
+
+    it("shouldn't be full", function () {
+        return crowdsale.isCrowdsaleFull()
+            .then(function (full) {
+                assert.ok(!full, 'Contract is full');
             });
     });
 });

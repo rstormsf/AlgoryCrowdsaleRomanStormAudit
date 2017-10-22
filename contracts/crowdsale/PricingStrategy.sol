@@ -5,19 +5,16 @@ pragma solidity ^0.4.15;
  */
 contract PricingStrategy {
 
-  // How many tokens investor can buy in presale
+  // How many tokens per one investor is allowed in presale
   uint public presaleMaxValue = 0;
 
-  /** Interface declaration. */
-  function isPricingStrategy() public constant returns (bool) {
-    return true;
+  function isPricingStrategy() external constant returns (bool) {
+      return true;
   }
 
   function getPresaleMaxValue() public constant returns (uint) {
-    return presaleMaxValue;
+      return presaleMaxValue;
   }
-
-  function isSane(address crowdsale) public constant returns (bool);
 
   function isPresaleFull(uint weiRaised) public constant returns (bool);
 

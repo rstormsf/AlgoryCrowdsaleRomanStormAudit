@@ -22,13 +22,9 @@ contract ReleasableToken is ERC20, Ownable {
      *
      */
     modifier canTransfer(address _sender) {
-
         if(!released) {
-            if(!transferAgents[_sender]) {
-                revert();
-            }
+            assert(transferAgents[_sender]);
         }
-
         _;
     }
 
@@ -38,7 +34,7 @@ contract ReleasableToken is ERC20, Ownable {
      * Design choice. Allow reset the release agent to fix fat finger mistakes.
      */
     function setReleaseAgent(address addr) onlyOwner inReleaseState(false) public {
-
+        require(addr != 0x0);
         // We don't do interface check here as we might want to a normal wallet address to act as a release agent
         releaseAgent = addr;
     }
@@ -47,6 +43,7 @@ contract ReleasableToken is ERC20, Ownable {
      * Owner can allow a particular address (a crowdsale contract) to transfer tokens despite the lock up period.
      */
     function setTransferAgent(address addr, bool state) onlyOwner inReleaseState(false) public {
+        require(addr != 0x0);
         transferAgents[addr] = state;
     }
 
@@ -61,17 +58,13 @@ contract ReleasableToken is ERC20, Ownable {
 
     /** The function can be called only before or after the tokens have been releasesd */
     modifier inReleaseState(bool releaseState) {
-        if(releaseState != released) {
-            revert();
-        }
+        require(releaseState == released);
         _;
     }
 
     /** The function can be called only by a whitelisted release agent. */
     modifier onlyReleaseAgent() {
-        if(msg.sender != releaseAgent) {
-            revert();
-        }
+        require(msg.sender == releaseAgent);
         _;
     }
 

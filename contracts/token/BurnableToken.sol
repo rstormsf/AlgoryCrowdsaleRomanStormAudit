@@ -4,14 +4,13 @@ import './StandardToken.sol';
 
 contract BurnableToken is StandardToken {
 
-    address public constant BURN_ADDRESS = 0;
+    address public constant BURN_ADDRESS = 0x0;
 
     /** How many tokens we burned */
     event Burned(address burner, uint burnedAmount);
 
     /**
      * Burn extra tokens from a balance.
-     *
      */
     function burn(uint burnAmount) {
         address burner = msg.sender;

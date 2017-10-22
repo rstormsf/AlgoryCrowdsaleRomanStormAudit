@@ -19,7 +19,7 @@ contract AlgoryFinalizeAgent is FinalizeAgent {
     function AlgoryFinalizeAgent(AlgoryToken _token, AlgoryCrowdsale _crowdsale) {
         token = _token;
         crowdsale = _crowdsale;
-        if(address(token) == 0 || address(crowdsale) == 0) revert();
+        require(address(token) != 0x0 && address(crowdsale) != 0x0);
     }
 
     /* Can we run finalize properly */
@@ -29,7 +29,7 @@ contract AlgoryFinalizeAgent is FinalizeAgent {
 
     /** Called once by crowdsale finalize() if the sale was success. */
     function finalizeCrowdsale() {
-        if(msg.sender != address(crowdsale)) revert();
+        require(msg.sender == address(crowdsale));
 
         // Make token transferable
         token.releaseTokenTransfer();

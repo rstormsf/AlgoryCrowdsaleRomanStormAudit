@@ -6,8 +6,7 @@ import './AlgoryCrowdsale.sol';
 
 /**
  * A finalize agent that does nothing.
- *
- * - Token transfer must be manually released by the owner
+ * Token transfer must be manually released by the owner
  */
 contract NullFinalizeAgent is FinalizeAgent {
 
@@ -23,6 +22,7 @@ contract NullFinalizeAgent is FinalizeAgent {
 
     /** Called once by crowdsale finalize() if the sale was success. */
     function finalizeCrowdsale() public {
+        // nothing to do
     }
 
 }

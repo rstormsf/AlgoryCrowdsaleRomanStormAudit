@@ -37,44 +37,39 @@ contract AlgoryPricingStrategy is PricingStrategy, Ownable {
         tranches[3].amount = 50000 ether;
         tranches[3].rate = 1000;
 
-        presaleMaxValue = 300 ether;
         trancheCount = tranches.length;
-    }
-
-    function isSane(address crowdsale) public constant returns (bool) {
-        return true;
-    }
-
-    function getTranche(uint n) public constant returns (uint amount, uint) {
-        require(n <= trancheCount);
-        return (tranches[n].amount, tranches[n].rate);
-    }
-
-    function isPresaleFull(uint presaleWeiRaised) public constant returns (bool) {
-        return presaleWeiRaised > tranches[0].amount;
-    }
-
-    function getCurrentTranche(uint weiRaised) private constant returns (Tranche) {
-        for(uint i=0; i < tranches.length; i++) {
-            if(weiRaised <= tranches[i].amount) {
-                return tranches[i-1];
-            }
-        }
-        return tranches[3];
-    }
-
-    function getCurrentRate(uint weiRaised) public constant returns (uint rate) {
-        return getCurrentTranche(weiRaised).rate;
-    }
-
-    function getAmountOfTokens(uint value, uint weiRaised) public constant returns (uint tokensAmount) {
-        require(value > 0 && weiRaised > 0);
-        uint rate = getCurrentRate(weiRaised);
-        return value * rate;
+        presaleMaxValue = 300 ether;
     }
 
     function() public payable {
         revert();
     }
 
+    function getTranche(uint n) external constant returns (uint amount, uint rate) {
+        require(n <= trancheCount);
+        return (tranches[n].amount, tranches[n].rate);
+    }
+
+    function isPresaleFull(uint presaleWeiRaised) public constant returns (bool) {
+        return presaleWeiRaised > tranches[1].amount;
+    }
+
+    function getCurrentRate(uint weiRaised) public constant returns (uint) {
+        return getCurrentTranche(weiRaised).rate;
+    }
+
+    function getAmountOfTokens(uint value, uint weiRaised) public constant returns (uint tokensAmount) {
+        require(value > 0);
+        uint rate = getCurrentRate(weiRaised);
+        return value.times(rate);
+    }
+
+    function getCurrentTranche(uint weiRaised) private constant returns (Tranche) {
+        for(uint i=1; i < tranches.length; i++) {
+            if(weiRaised <= tranches[i].amount) {
+                return tranches[i-1];
+            }
+        }
+        return tranches[tranches.length-1];
+    }
 }

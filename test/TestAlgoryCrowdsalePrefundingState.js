@@ -32,9 +32,11 @@ const duration = {
 
 
 contract('Test Algory Crowdsale Prefunding State', function(accounts) {
+    let totalSupply = 120000000 * 10**18;
     let crowdsale, finalizeAgent, algory;
     let investorCount = 0;
     let presaleWeiRaised = 0;
+
     it("prepare suite by assign deployed contracts and set dates to make prefunding state", function () {
         let presaleStartsAt = latestTime();
         let startsAt = presaleStartsAt + duration.days(10);
@@ -45,6 +47,7 @@ contract('Test Algory Crowdsale Prefunding State', function(accounts) {
             .then(function() {return tokenContract.deployed()}).then(function (instance) { algory = instance})
             .then(function () {return algory.setReleaseAgent(finalizeAgent.address)})
             .then(function () {return crowdsale.setFinalizeAgent(finalizeAgent.address)})
+            .then(function () {return algory.approve(crowdsale.address, totalSupply)})
 
             .then(function () {return crowdsale.setEndsAt(endsAt)})
             .then(function () {return crowdsale.setStartsAt(startsAt)})
@@ -66,26 +69,29 @@ contract('Test Algory Crowdsale Prefunding State', function(accounts) {
                 assert.equal(wallet, anotherWallet, 'Another Multisig Wallet has not replaced');
             });
     });
-    it("shouldn't replace multisig wallet if investment count is grater than 5", function () {
-        //TODO
-    });
     it("shouldn't replace pricing strategy to another", function () {
+        let error;
         return pricingStrategyContract.new()
             .then(function (instance) {
-                return crowdsale.setPricingStrategy(instance.address).catch(function (error) {
+                return crowdsale.setPricingStrategy(instance.address).catch(function (err) {
+                    error = err;
+                }).then(function () {
                     assert.ok(error, 'Crowdsale allow to replace pricing startegy');
                 })
             })
     });
     it("shouldn't set presale date", function () {
         let presaleStartsAt = latestTime() + duration.days(1);
+        let error;
         return crowdsale.setPresaleStartsAt(presaleStartsAt)
             .catch(function(err) {
-                assert.ok(err, 'Error has not occurred')
+                error = err;
+            }).then(function () {
+                assert.ok(error, 'Error has not occurred')
             });
 
     });
-    it("should set presale, start and end dates", function () {
+    it("should set start and end dates", function () {
         let startsAt = latestTime() + duration.days(77);
         let endsAt = startsAt + duration.days(77);
         let resultForStart, resultForEnd;
@@ -116,23 +122,35 @@ contract('Test Algory Crowdsale Prefunding State', function(accounts) {
                 assert.equal(timestamp, endsAt, 'EndsAt has not replaced');
             });
     });
-    it("shouldn't allow to buy tokens by anyone in preparing state", function () {
-        return crowdsale.sendTransaction({from: accounts[1], value: ether(1)}).catch(function (error) {
+    it("shouldn't allow to buy tokens by anyone in prefunding state", function () {
+        let error;
+        return crowdsale.sendTransaction({from: accounts[1], value: ether(1)}).catch(function (err) {
+            error = err;
+        }).then(function () {
             assert.ok(error, 'Crowdsale allow to buy')
         });
     });
-    it("shouldn't allow to finalize crowdsale in preparing state", function () {
-        return crowdsale.finalize().catch(function (error) {
+    it("shouldn't allow to finalize crowdsale in prefunding state", function () {
+        let error;
+        return crowdsale.finalize().catch(function (err) {
+            error = err;
+        }).then(function () {
             assert.ok(error, 'Crowdsale allow to finalize')
         });
     });
-    it("shouldn't allow to set refunding state in preparing state", function () {
-        return crowdsale.allowRefunding(true).catch(function (error) {
+    it("shouldn't allow to set refunding in prefunding state", function () {
+        let error;
+        return crowdsale.allowRefunding(true).catch(function (err) {
+            error = err;
+        }).then(function () {
             assert.ok(error, 'Crowdsale allow to refund')
         });
     });
-    it("shouldn't allow to refund in preparing state", function () {
-        return crowdsale.refund({from: accounts[8]}).catch(function (error) {
+    it("shouldn't allow to refund in prefunding state", function () {
+        let error;
+        return crowdsale.refund({from: accounts[8]}).catch(function (err) {
+            error = err;
+        }).then(function () {
             assert.ok(error, 'Crowdsale allow to refund')
         });
     });
@@ -140,6 +158,7 @@ contract('Test Algory Crowdsale Prefunding State', function(accounts) {
         let participant = accounts[2];
         let valueParticipant = ether(8);
         let valueToBuy = ether(4);
+        let expectedAmountOfTokens = 1200 * valueToBuy.toNumber();
         return crowdsale.setEarlyParticipantWhitelist(participant, valueParticipant)
             .then(function (result) {
                 assert.ok(checkIsEventTriggered(result, "Whitelisted", 'Event Whitelisted has not triggered'));
@@ -159,23 +178,32 @@ contract('Test Algory Crowdsale Prefunding State', function(accounts) {
             })
             .then(function (investors) {
                 assert.equal(investors.toNumber(), investorCount, 'Investors count is invalid');
-                // return crowdsale.investedAmountOf(participant)
+                return crowdsale.investedAmountOf(participant)
             })
-            // .then(function (amount) {
-            //     presaleWeiRaised += amount;
-            //     assert.equal(amount.toNumber(), valueToBuy.toNumber(), 'Invested amount is invalid');
-            //     return crowdsale.tokenAmountOf(participant)
-            // })
-            // .then(function (tokensAmount) {
-            //     assert.equal(tokensAmount.toNumber(), 333333, 'Purchased tokens amount is invalid');
-            //     return crowdsale.tokenAmountOf(participant)
-            // })
-            // .then(function (tokensAmount) {
-            //     assert.equal(tokensAmount.toNumber(), 333333, 'Purchased tokens amount is invalid');
-            //     return crowdsale.presaleWeiRaised()
-            // })
-            // .then(function (presaleWei) {
-            //     assert.equal(presaleWei.toNumber(), presaleWeiRaised, 'Investors count is invalid');
-            // })
+            .then(function (amount) {
+                assert.equal(amount.toNumber(), valueToBuy.toNumber(), 'Invested amount is invalid');
+                return crowdsale.tokenAmountOf(participant)
+            })
+            .then(function (tokensAmount) {
+                assert.equal(tokensAmount.toNumber(), expectedAmountOfTokens, 'Purchased tokens amount is invalid');
+                return crowdsale.tokenAmountOf(participant)
+            })
+            .then(function (tokensAmount) {
+                assert.equal(tokensAmount.toNumber(), expectedAmountOfTokens, 'Purchased tokens amount is invalid');
+                presaleWeiRaised += valueToBuy.toNumber();
+                return crowdsale.presaleWeiRaised()
+            })
+            .then(function (presaleWei) {
+                assert.equal(presaleWei.toNumber(), presaleWeiRaised, 'Presale wei raised is invalid');
+                return algory.balanceOf(participant);
+            })
+            .then(function (balance) {
+                assert.equal(balance.toNumber(), expectedAmountOfTokens, 'Balance of participant is invalid');
+                totalSupply -= expectedAmountOfTokens;
+            })
     });
+    // it("shouldn't replace multisig wallet if investment count is grater than 5", function () {
+    //     //TODO
+    //     assert.ok(false, 'TODO')
+    // });
 });

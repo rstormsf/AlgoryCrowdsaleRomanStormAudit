@@ -60,20 +60,32 @@ contract('Test Algory Pricing Strategy', function(accounts) {
             assert.equal(tranche[1].toNumber(), tranches[3].rate, 'Price is invalid');
         });
     });
+    it("shouldn't get tranche out of range", function () {
+        let error;
+        return pricingStrategy.getTranche(4).catch(function (err) {
+            error = err;
+        }).then(function () {
+            assert.ok(error, 'Pricing Strategy allow to get out of range tranche');
+        });
+    });
     it("should check is presale full", function () {
-        return pricingStrategy.isPresaleFull(tranches[0].amount)
+        const outOfTranche1 = ether(10001);
+        return pricingStrategy.isPresaleFull(ether(9999))
             .then(function(isPresaleFull) {
                 assert.ok(!isPresaleFull, 'Presale is full');
             })
             .then (function () {
-                return pricingStrategy.isPresaleFull(tranches[0].amount + ether(1))
+                return pricingStrategy.isPresaleFull(outOfTranche1)
             })
             .then (function (isPresaleFull) {
-                assert.ok(isPresaleFull, 'Presale is not full');
+                assert.ok(isPresaleFull, 'Presale is not full for amount '+outOfTranche1);
             })
     });
     it("shouldn't allow to send money to this contract", function () {
-        return pricingStrategy.sendTransaction({from: accounts[1], value: ether(1)}).catch(function (error) {
+        let error;
+        return pricingStrategy.sendTransaction({from: accounts[1], value: ether(1)}).catch(function (err) {
+            error =err;
+        }).then(function () {
             assert.ok(error, 'Pricing Strategy allow to buy')
         })
     });
@@ -139,54 +151,112 @@ contract('Test Algory Pricing Strategy', function(accounts) {
     });
     it("should get proper amount of tokens in I tranche", function () {
         let weiRaised = ether(77); // I tranche
-        const multiplier = 10 ** tokenDecimals;
         let value = ether(7);
-        let expectedAmountOfTokens = tranches[0].rate * 7 * multiplier;
+        let expectedAmountOfTokens = tranches[0].rate * value;
 
         return pricingStrategy.getAmountOfTokens(value, weiRaised).then(function(tokensAmount) {
             assert.equal(tokensAmount.toNumber(), expectedAmountOfTokens, 'Invalid amount of tokens');
         }).then(function () {
-            let value = ether(856);
-            let expectedAmountOfTokens = tranches[0].rate * 856 * multiplier;
-            pricingStrategy.getAmountOfTokens(value, weiRaised).then(function (tokensAmount) {
+            value = ether(856);
+            expectedAmountOfTokens = tranches[0].rate * value;
+            return pricingStrategy.getAmountOfTokens(value, weiRaised).then(function (tokensAmount) {
                 assert.equal(tokensAmount.toNumber(), expectedAmountOfTokens, 'Invalid amount of tokens');
             });
         }).then(function () {
-            let value = ether(0.006);
-            let expectedAmountOfTokens = tranches[0].rate * 0.006 * multiplier;
-            pricingStrategy.getAmountOfTokens(value, weiRaised).then(function (tokensAmount) {
+            value = 6 * 10**6;
+            expectedAmountOfTokens = tranches[0].rate * value;
+            return pricingStrategy.getAmountOfTokens(value, weiRaised).then(function (tokensAmount) {
                 assert.equal(tokensAmount.toNumber(), expectedAmountOfTokens, 'Invalid amount of tokens');
             });
         }).then(function () {
-            let value = 7700000;
-            let expectedAmountOfTokens = tranches[0].rate * 7700000;
-            pricingStrategy.getAmountOfTokens(value, weiRaised).then(function (tokensAmount) {
+            value = 7700000;
+            expectedAmountOfTokens = tranches[0].rate * value;
+            return pricingStrategy.getAmountOfTokens(value, weiRaised).then(function (tokensAmount) {
+                assert.equal(tokensAmount.toNumber(), expectedAmountOfTokens, 'Invalid amount of tokens');
+            });
+        }).then(function () {
+            value = 77;
+            expectedAmountOfTokens = tranches[0].rate * value;
+            return pricingStrategy.getAmountOfTokens(value, 0).then(function (tokensAmount) {
                 assert.equal(tokensAmount.toNumber(), expectedAmountOfTokens, 'Invalid amount of tokens');
             });
         })
 
     });
     it("should get proper amount of tokens in II tranche", function () {
-        let weiRaised = ether(10001); // I tranche
-        const multiplier = 10 ** tokenDecimals;
+        let weiRaised = ether(10001); // II tranche
         let value = ether(7);
-        let expectedAmountOfTokens = tranches[1].rate * 7 * multiplier;
+        let expectedAmountOfTokens = tranches[1].rate * value.toNumber();
 
+        return pricingStrategy.getAmountOfTokens(value, weiRaised).then(function(tokensAmount) {
+            assert.equal(tokensAmount.toNumber(), expectedAmountOfTokens, 'Invalid amount of tokens 1');
+        })
+        .then(function () {
+            value = ether(856);
+            expectedAmountOfTokens = tranches[1].rate * value;
+            return pricingStrategy.getAmountOfTokens(value, weiRaised).then(function (tokensAmount) {
+                assert.equal(tokensAmount.toNumber(), expectedAmountOfTokens, 'Invalid amount of tokens 2');
+            });
+        })
+        .then(function () {
+            value = 6 * 10**5;
+            expectedAmountOfTokens = tranches[1].rate * value;
+            return pricingStrategy.getAmountOfTokens(value, weiRaised).then(function (tokensAmount) {
+                assert.equal(tokensAmount.toNumber(), expectedAmountOfTokens, 'Invalid amount of tokens 3');
+            });
+        })
+    });
+    it("should get proper amount of tokens in III tranche", function () {
+        let weiRaised = ether(25001); // III tranche
+
+        let value = ether(64);
+        let expectedAmountOfTokens = tranches[2].rate * value;
         return pricingStrategy.getAmountOfTokens(value, weiRaised).then(function(tokensAmount) {
             assert.equal(tokensAmount.toNumber(), expectedAmountOfTokens, 'Invalid amount of tokens');
         }).then(function () {
-            let value = ether(856);
-            let expectedAmountOfTokens = tranches[1].rate * 856 * multiplier;
-            pricingStrategy.getAmountOfTokens(value, weiRaised).then(function (tokensAmount) {
+            value = ether(869);
+            expectedAmountOfTokens = tranches[2].rate * value;
+            return pricingStrategy.getAmountOfTokens(value, weiRaised).then(function (tokensAmount) {
                 assert.equal(tokensAmount.toNumber(), expectedAmountOfTokens, 'Invalid amount of tokens');
             });
         })
-        // .then(function () {
-        //     let value = ether(0.006);
-        //     let expectedAmountOfTokens = tranches[1].rate * 0.006 * multiplier;
-        //     pricingStrategy.getAmountOfTokens(value, weiRaised).then(function (tokensAmount) {
-        //         assert.equal(tokensAmount.toNumber(), expectedAmountOfTokens, 'Invalid amount of tokens');
-        //     });
-        // })
+        .then(function () {
+            value = 78 * 10**5;
+            expectedAmountOfTokens = tranches[2].rate * value;
+            return pricingStrategy.getAmountOfTokens(value, weiRaised).then(function (tokensAmount) {
+                assert.equal(tokensAmount.toNumber(), expectedAmountOfTokens, 'Invalid amount of tokens');
+            });
+        })
+    });
+    it("should get proper amount of tokens in IV tranche", function () {
+        let weiRaised = ether(50001); // IV tranche
+
+        let value = ether(1);
+        let expectedAmountOfTokens = tranches[3].rate * value;
+        return pricingStrategy.getAmountOfTokens(value, weiRaised).then(function(tokensAmount) {
+            assert.equal(tokensAmount.toNumber(), expectedAmountOfTokens, 'Invalid amount of tokens');
+        })
+            .then(function () {
+                value = ether(869);
+                expectedAmountOfTokens = tranches[3].rate * value;
+                return pricingStrategy.getAmountOfTokens(value, ether(75000)).then(function (tokensAmount) {
+                    assert.equal(tokensAmount.toNumber(), expectedAmountOfTokens, 'Invalid amount of tokens');
+                });
+            })
+            .then(function () {
+                value = 78 * 10**5;
+                expectedAmountOfTokens = tranches[3].rate * value;
+                return pricingStrategy.getAmountOfTokens(value, ether(917777)).then(function (tokensAmount) {
+                    assert.equal(tokensAmount.toNumber(), expectedAmountOfTokens, 'Invalid amount of tokens');
+                });
+            })
+    });
+    it("shouldn't get amount of tokens for 0 value", function () {
+        let error;
+        return pricingStrategy.getAmountOfTokens(0, 111).catch(function (err) {
+            error = err;
+        }).then(function () {
+            assert.ok(error, 'Pricing Strategy allow to get amount of tokens for 0 value');
+        })
     });
 });

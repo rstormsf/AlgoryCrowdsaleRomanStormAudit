@@ -47,7 +47,7 @@ contract('AlgoryToken', function(accounts) {
         });
     });
     it("should change token information (name, symbol)", function() {
-        var algory;
+        let algory;
         return token.deployed().then(function(instance) {
             algory = instance;
             return algory.setTokenInformation('Algory2', 'ALG2');
@@ -65,7 +65,7 @@ contract('AlgoryToken', function(accounts) {
         return token.deployed().then(function(instance) {
             return instance.balanceOf(accounts[0]);
         }).then(function(balance) {
-            assert.equal(balance.valueOf(), totalSupply, accounts[0] + " has no 120000000 ALG");
+            assert.equal(balance.valueOf(), totalSupply, accounts[0] + " has no total supply ALG");
         });
     });
 });

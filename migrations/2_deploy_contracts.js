@@ -52,14 +52,6 @@ module.exports = function(deployer, network, accounts) {
     .then(function() {
         return deployer.deploy(token, totalSupply);
     })
-    // Approve crowdsale to transfer tokens from beneficiary
-    .then(function () {
-        algory = token.at(token.address);
-        return algory.approve(beneficiary, totalSupply);
-    })
-    .then(function (approved) {
-        return beneficiaryApproved = approved;
-    })
     // Deploy Pricing Strategy
     .then(function() {
         return deployer.deploy(pricingStrategy);
@@ -83,17 +75,13 @@ module.exports = function(deployer, network, accounts) {
         return deployer.deploy(finalizeAgent, token.address, crowdsale.address);
     })
     .then(function() {
+        algory = token.at(token.address);
         console.log("\n\n\t----------------------- DEPLOYED CONTRACTS -----------------------\n\n");
         console.log("\tCrowdsale address: " + crowdsale.address);
         console.log("\tAlgory Token address: " + algory.address);
         console.log("\tMultisig Wallet address: " + multiSigWallet.address);
         console.log("\tPricing Strategy address: " + pricingStrategy.address);
         console.log("\tFinalize Agent address: " + finalizeAgent.address + "\n");
-        if (beneficiaryApproved) {
-            console.log("\tBeneficiary address: "+beneficiary+' has approved total supply: '+totalSupply+" ALG\n");
-        } else {
-            console.log("Beneficiary address has not approved\n");
-        }
         console.log("\tCrowdsale constructor parameters: "
             + '"'+algory.address+'",'
             + '"'+beneficiary+'",'

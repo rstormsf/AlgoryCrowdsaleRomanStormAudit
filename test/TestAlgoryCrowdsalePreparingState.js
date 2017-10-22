@@ -76,10 +76,13 @@ contract('Test Algory Crowdsale Preparing State', function(accounts) {
     });
     it("shouldn't set invalid finalize agent", function () {
         let invalidFinalizeAgent;
+        let error;
         return finalizeAgentContract.new(algory.address, crowdsale.address)
             .then(function (instance) {
                 invalidFinalizeAgent = instance;
-                return crowdsale.setFinalizeAgent(invalidFinalizeAgent.address).catch(function (error) {
+                return crowdsale.setFinalizeAgent(invalidFinalizeAgent.address).catch(function (err) {
+                    error = err;
+                }).then(function () {
                     assert.ok(error, 'Invalid finalize agent has been set');
                 });
             })
@@ -97,6 +100,20 @@ contract('Test Algory Crowdsale Preparing State', function(accounts) {
             .then(function (pricingStrategy) {
                 assert.equal(pricingStrategy, anotherPricingStrategy.address, 'Another Pricing Strategy has not replaced');
             });
+    });
+    it("shouldn't set invalid pricing strategy", function () {
+        let invalidPricingStrategy;
+        let errorCatch;
+        return finalizeAgentContract.new(algory.address, crowdsale.address)
+            .then(function (instance) {
+                invalidPricingStrategy = instance;
+                return crowdsale.setPricingStrategy(invalidPricingStrategy.address).catch(function (error) {
+                    errorCatch = error;
+                })
+                .then(function () {
+                    assert.ok(errorCatch, 'Invalid pricing strategy agent has been set');
+                });
+            })
     });
     it("should set presale, start and end dates", function () {
         let presaleStartsAt = latestTime() + duration.days(77);
@@ -144,28 +161,35 @@ contract('Test Algory Crowdsale Preparing State', function(accounts) {
             });
     });
     it("shouldn't set invalid presale, start and end dates", function () {
+        //Invalid dates
         let endsAt = latestTime() - duration.days(1);
         let startsAt = endsAt - duration.days(2);
-        let presaleStartsAt = startsAt - duration.days(3);
-        return crowdsale.setPresaleStartsAt(presaleStartsAt)
-            .catch(function(err) {
-                assert.ok(err, 'Error has not occurred')
+        let presaleStartsAt = startsAt + duration.days(333);
+        let errorPresale, errorStart, errorEnd;
+        return crowdsale.setPresaleStartsAt(presaleStartsAt).catch(function(err) {
+            errorPresale = err;
+        }).then(function () {
+            assert.ok(errorPresale, 'Error for presale date has not occurred')
+        })
+        .then(function () {
+            crowdsale.setStartsAt(startsAt).catch(function(err) {
+                errorStart = err;
+            }).then(function () {
+                assert.ok(errorStart, 'Error for start date has not occurred')
             })
-            .then(function () {
-                crowdsale.setStartsAt(startsAt).catch(function(err) {
-                    assert.ok(err, 'Error has not occurred')
-                })
-            })
-            .then(function () {
-                crowdsale.setEndsAt(endsAt).catch(function(err) {
-                    assert.ok(err, 'Error has not occurred')
-                });
-            })
+        })
+        .then(function () {
+            crowdsale.setEndsAt(endsAt).catch(function(err) {
+                errorEnd = err;
+            }).then(function () {
+                assert.ok(errorEnd, 'Errorfor end date  has not occurred')
+            });
+        })
 
     });
     it("should set participant to whitelist ", function () {
-        let participant1 = '0x7777777'; let value1 = ether(7);
-        let participant2 = accounts[2]; let value2 = ether(8);
+        let participant1 = '0x7777777'; let value1 = ether(10);
+        let participant2 = accounts[2]; let value2 = ether(290);
         return crowdsale.setEarlyParticipantWhitelist(participant1, value1)
             .then(function (result) {
                 assert.ok(checkIsEventTriggered(result, "Whitelisted", 'Event Whitelisted has not triggered'));
@@ -200,18 +224,21 @@ contract('Test Algory Crowdsale Preparing State', function(accounts) {
             });
     });
     it("shouldn't set participant to whitelist with exceeded value", function () {
-        let maxValue = ether(300);
-        let participant = '0x665465456'; let value = maxValue + ether(1);
-        return crowdsale.setEarlyParticipantWhitelist(participant, value).catch(function (error) {
+        const maxValue = ether(300);
+        let participant = '0x665465456'; let value = ether(301);
+        let error;
+        return crowdsale.setEarlyParticipantWhitelist(participant, value).catch(function (err) {
+            error = err;
+        }).then(function () {
             assert.ok(error, 'Participant with exceeded value can set');
         })
     });
     it("should load participants to whitelist from array", function () {
         let participantsAddress = [
-            '0x11', '0x222', '0x333', '0x444', '0x555'
+            '0x11111111', '0x222222222', '0x33333333333', '0x4444444444', '0x5555555555'
         ];
         let participantsValues = [
-            ether(1), ether(2), ether(3), ether(4), ether(5)
+            ether(100), ether(50), ether(50), ether(200), ether(300)
         ];
         let totalValues = 0;
         participantsValues.forEach(function (val) {
@@ -246,29 +273,75 @@ contract('Test Algory Crowdsale Preparing State', function(accounts) {
             });
 
     });
+
+    it("shouldn't set participant to whitelist when it is full", function () {
+        let whitelistFull = ether(10000);
+        let participantsAddress = [];
+        let participantsValues = [];
+        let i = 0;
+        while (whitelistWeiRaised <= whitelistFull) {
+            participantsAddress[i] = 0x1 + i;
+            participantsValues[i] = ether(100);
+            whitelistWeiRaised += ether(100).toNumber();
+            i++;
+        }
+        //Fill whitelist
+        return crowdsale.loadEarlyParticipantsWhitelist(participantsAddress, participantsValues)
+            .then(function () {
+                //Check is whitelisted is full
+                return crowdsale.whitelistWeiRaised().then(function (weiRaised) {
+                    assert.ok(weiRaised.toNumber() >= whitelistFull.toNumber(), 'Invalid whitelisted wei raised');
+                    //Special case whitelist can be fill to I tranche + 300 ETH - 1
+                    assert.ok(weiRaised.toNumber() < whitelistFull.toNumber() + ether(300), 'Invalid whitelisted wei raised')
+                })
+            })
+            .then(function () {
+                let error;
+                return crowdsale.setEarlyParticipantWhitelist('0x8789876757545454', ether(233)).catch(function (err) {
+                    error = err;
+                }).then(function () {
+                    assert.ok(error, 'Error has not occurred when whitelist is full');
+                })
+            })
+    });
     it("shouldn't allow to buy tokens by anyone in preparing state", function () {
-        return crowdsale.sendTransaction({from: accounts[1], value: ether(1)}).catch(function (error) {
+        let error;
+        return crowdsale.sendTransaction({from: accounts[1], value: ether(1)}).catch(function (err) {
+            error = err;
+        }).then(function () {
             assert.ok(error, 'Crowdsale allow to buy')
         })
             .then(function () {
                 // check also whitelisted account
-                return crowdsale.sendTransaction({from: accounts[2], value: ether(1)}).catch(function (error) {
-                    assert.ok(error, 'Crowdsale allow to buy whitelisted account')
+                let error2;
+                return crowdsale.sendTransaction({from: accounts[2], value: ether(1)}).catch(function (err) {
+                    error2 = err;
+                }).then(function () {
+                    assert.ok(error2, 'Crowdsale allow to buy whitelisted account')
                 })
             })
     });
     it("shouldn't allow to finalize crowdsale in preparing state", function () {
-        return crowdsale.finalize().catch(function (error) {
+        let error;
+        return crowdsale.finalize().catch(function (err) {
+            error = err;
+        }).then(function () {
             assert.ok(error, 'Crowdsale allow to finalize')
         });
     });
     it("shouldn't allow to set refunding state in preparing state", function () {
-        return crowdsale.allowRefunding(true).catch(function (error) {
+        let error;
+        return crowdsale.allowRefunding(true).catch(function (err) {
+            error = err;
+        }).then(function () {
             assert.ok(error, 'Crowdsale allow to refund')
         });
     });
     it("shouldn't allow to refund in preparing state", function () {
-        return crowdsale.refund({from: accounts[8]}).catch(function (error) {
+        let error;
+        return crowdsale.refund({from: accounts[8]}).catch(function (err) {
+            error = err;
+        }).then(function () {
             assert.ok(error, 'Crowdsale allow to refund')
         });
     });
