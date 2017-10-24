@@ -33,6 +33,7 @@ module.exports = function(deployer, network, accounts) {
     // Crowdsale
     let algoryCrowdsale;
     const beneficiary = accounts[0];
+    // const beneficiary = "0x1e418971a85de4cd13fb3f4c57230de4fa776653";
 
     const presaleStart = latestTime() + duration.seconds(10);
     const start = presaleStart + duration.minutes(10);

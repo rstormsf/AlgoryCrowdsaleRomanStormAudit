@@ -96,7 +96,6 @@ contract AlgoryCrowdsale is InvestmentPolicyCrowdsale {
     // Crowdsale time boundary has changed
     event TimeBoundaryChanged(string timeBoundary, uint timestamp);
 
-
     /** Modified allowing execution only if the crowdsale is currently running.  */
     modifier inState(State state) {
         require(getState() == state);
@@ -150,7 +149,7 @@ contract AlgoryCrowdsale is InvestmentPolicyCrowdsale {
     }
 
     function setStartsAt(uint start) onlyOwner external {
-        require(start > now && start > presaleStartsAt && start < endsAt);
+        require(start > now - 10 && start > presaleStartsAt && start < endsAt);
         State state = getState();
         assert(state == State.Preparing || state == State.PreFunding);
         startsAt = start;
@@ -264,7 +263,7 @@ contract AlgoryCrowdsale is InvestmentPolicyCrowdsale {
 
     /** Check is crowdsale can be able to transfer all tokens from beneficiary */
     function isAllTokensApproved() private constant returns (bool) {
-        return getTokensLeft() == token.totalSupply();
+        return getTokensLeft() == token.totalSupply() - tokensSold;
     }
 
     /**
@@ -294,6 +293,7 @@ contract AlgoryCrowdsale is InvestmentPolicyCrowdsale {
         State state = getState();
         uint weiAmount = msg.value;
         uint tokenAmount = 0;
+
         assert(state == State.PreFunding || state == State.Funding);
         if (state == State.PreFunding) {
             assert(earlyParticipantWhitelist[receiver] > 0);
@@ -314,6 +314,7 @@ contract AlgoryCrowdsale is InvestmentPolicyCrowdsale {
 
         if (state == State.PreFunding) {
             presaleWeiRaised = presaleWeiRaised.plus(weiAmount);
+            earlyParticipantWhitelist[receiver] = earlyParticipantWhitelist[receiver].minus(weiAmount);
         }
 
         assert(!isBreakingCap(tokenAmount));

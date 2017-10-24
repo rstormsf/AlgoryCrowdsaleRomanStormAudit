@@ -1,9 +1,11 @@
 
 .DS_Store
-.idea/algory-ico.iml
-.idea/inspectionProfiles/
-.idea/modules.xml
-.idea/workspace.xml
+#.idea/algory-ico.iml
+#.idea/inspectionProfiles/
+#.idea/modules.xml
+#.idea/workspace.xml
 
+.idea
 node_modules
 build
+examples
