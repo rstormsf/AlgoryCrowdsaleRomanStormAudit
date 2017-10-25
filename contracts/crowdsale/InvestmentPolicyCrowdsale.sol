@@ -18,6 +18,16 @@ contract InvestmentPolicyCrowdsale is Haltable {
 
     event InvestmentPolicyChanged(bool newRequireCustomerId, bool newRequiredSignedAddress, address newSignerAddress);
 
+
+    /**
+     * Set policy do we need to have server-side customer ids for the investments.
+     *
+     */
+    function setRequireCustomerId(bool value) onlyOwner external{
+        requireCustomerId = value;
+        InvestmentPolicyChanged(requireCustomerId, requiredSignedAddress, signerAddress);
+    }
+
     /**
      * Set policy if all investors must be cleared on the server side first.
      *
@@ -71,15 +81,6 @@ contract InvestmentPolicyCrowdsale is Haltable {
         // Crowdsale allows only server-side signed participants
         require(requiredSignedAddress && customerId != 0);
         investInternal(addr, customerId);
-    }
-
-    /**
-     * Set policy do we need to have server-side customer ids for the investments.
-     *
-     */
-    function setRequireCustomerId(bool value) onlyOwner external{
-        requireCustomerId = value;
-        InvestmentPolicyChanged(requireCustomerId, requiredSignedAddress, signerAddress);
     }
 
     function investInternal(address receiver, uint128 customerId) stopInEmergency internal;

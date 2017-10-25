@@ -2,7 +2,7 @@ pragma solidity ^0.4.15;
 
 import './InvestmentPolicyCrowdsale.sol';
 import './PricingStrategy.sol';
-import '../token/FractionalERC20.sol';
+import '../token/CrowdsaleToken.sol';
 import './FinalizeAgent.sol';
 import '../math/SafeMathLib.sol';
 
@@ -14,7 +14,7 @@ contract AlgoryCrowdsale is InvestmentPolicyCrowdsale {
     using SafeMathLib for uint;
 
     /* The token we are selling */
-    FractionalERC20 public token;
+    CrowdsaleToken public token;
 
     /* How we are going to price our offering */
     PricingStrategy public pricingStrategy;
@@ -64,6 +64,9 @@ contract AlgoryCrowdsale is InvestmentPolicyCrowdsale {
     /* Allow investors refund theirs money */
     bool public allowRefund = false;
 
+    // Has tokens preallocated */
+    bool private isPreallocated = false;
+
     /** How much ETH each address has invested to this crowdsale */
     mapping (address => uint256) public investedAmountOf;
 
@@ -104,7 +107,7 @@ contract AlgoryCrowdsale is InvestmentPolicyCrowdsale {
 
     function AlgoryCrowdsale(address _token, address _beneficiary, PricingStrategy _pricingStrategy, address _multisigWallet, uint _presaleStart, uint _start, uint _end) public {
         owner = msg.sender;
-        token = FractionalERC20(_token);
+        token = CrowdsaleToken(_token);
         beneficiary = _beneficiary;
 
         presaleStartsAt = _presaleStart;
@@ -119,9 +122,14 @@ contract AlgoryCrowdsale is InvestmentPolicyCrowdsale {
         require(beneficiary != 0x0 && address(token) != 0x0);
         assert(token.balanceOf(beneficiary) == token.totalSupply());
 
-        preallocateTokens();
     }
 
+
+    function prepareCrowdsale() onlyOwner external {
+        assert(isAllTokensApproved());
+        preallocateTokens();
+        isPreallocated = true;
+    }
 
     /**
      * Allow to send money and get tokens.
@@ -149,7 +157,7 @@ contract AlgoryCrowdsale is InvestmentPolicyCrowdsale {
     }
 
     function setStartsAt(uint start) onlyOwner external {
-        require(start > now - 10 && start > presaleStartsAt && start < endsAt);
+        require(presaleStartsAt < start && start < endsAt);
         State state = getState();
         assert(state == State.Preparing || state == State.PreFunding);
         startsAt = start;
@@ -157,7 +165,8 @@ contract AlgoryCrowdsale is InvestmentPolicyCrowdsale {
     }
 
     function setEndsAt(uint end) onlyOwner external {
-        require(end > startsAt && end > startsAt && end > presaleStartsAt);
+        require(end > startsAt && end > presaleStartsAt);
+        require(presaleStartsAt < startsAt && startsAt < end);
         endsAt = end;
         TimeBoundaryChanged('endsAt', endsAt);
     }
@@ -182,7 +191,7 @@ contract AlgoryCrowdsale is InvestmentPolicyCrowdsale {
      */
     function finalize() inState(State.Success) onlyOwner stopInEmergency external {
         // Already finalized
-        if(finalized) revert();
+        assert(!finalized);
         // Finalizing is optional. We only call it if we are given a finalizing agent.
         if(address(finalizeAgent) != 0) {
             finalizeAgent.finalizeCrowdsale();
@@ -191,7 +200,9 @@ contract AlgoryCrowdsale is InvestmentPolicyCrowdsale {
     }
 
     /** This is for manual allow refunding */
-    function allowRefunding(bool val) inState(State.Failure) onlyOwner external {
+    function allowRefunding(bool val) onlyOwner external {
+        State state = getState();
+        assert(halted || state == State.Success || state == State.Failure || state == State.Refunding);
         allowRefund = val;
     }
 
@@ -202,6 +213,16 @@ contract AlgoryCrowdsale is InvestmentPolicyCrowdsale {
     function loadRefund() inState(State.Failure) external payable {
         require(msg.value != 0);
         loadedRefund = loadedRefund.plus(msg.value);
+    }
+
+    function refund() inState(State.Refunding) external {
+        assert(allowRefund);
+        uint256 weiValue = investedAmountOf[msg.sender];
+        assert(weiValue != 0);
+        investedAmountOf[msg.sender] = 0;
+        weiRefunded = weiRefunded.plus(weiValue);
+        Refund(msg.sender, weiValue);
+        assert(msg.sender.send(weiValue));
     }
 
     function setPricingStrategy(PricingStrategy _pricingStrategy) onlyOwner public {
@@ -249,13 +270,14 @@ contract AlgoryCrowdsale is InvestmentPolicyCrowdsale {
      */
     function getState() public constant returns (State) {
         if(finalized) return State.Finalized;
-        else if (!isAllTokensApproved()) return State.Preparing;
+        else if (!isPreallocated) return State.Preparing;
         else if (address(finalizeAgent) == 0) return State.Preparing;
         else if (!finalizeAgent.isSane()) return State.Preparing;
         else if (block.timestamp < presaleStartsAt) return State.Preparing;
         else if (block.timestamp >= presaleStartsAt && block.timestamp < startsAt) return State.PreFunding;
         else if (block.timestamp <= endsAt && block.timestamp >= startsAt && !isCrowdsaleFull()) return State.Funding;
-        else if (!allowRefund && block.timestamp > endsAt && isCrowdsaleFull()) return State.Success;
+        else if (!allowRefund && isCrowdsaleFull()) return State.Success;
+        else if (!allowRefund && block.timestamp > endsAt) return State.Success;
         else if (allowRefund && weiRaised > 0 && loadedRefund >= weiRaised) return State.Refunding;
         else return State.Failure;
     }
@@ -263,8 +285,10 @@ contract AlgoryCrowdsale is InvestmentPolicyCrowdsale {
 
     /** Check is crowdsale can be able to transfer all tokens from beneficiary */
     function isAllTokensApproved() private constant returns (bool) {
-        return getTokensLeft() == token.totalSupply() - tokensSold;
+        return getTokensLeft() == token.totalSupply() - tokensSold
+                && token.transferAgents(beneficiary);
     }
+
 
     /**
      * Called from invest() to confirm if the current investment does not break our cap rule.
@@ -273,21 +297,6 @@ contract AlgoryCrowdsale is InvestmentPolicyCrowdsale {
         return tokenAmount > getTokensLeft();
     }
 
-    /**
-     * Investors can claim refund.
-     *
-     * Note that any refunds from proxy buyers should be handled separately,
-     * and not through this contract.
-     */
-    function refund() inState(State.Refunding) public {
-        assert(allowRefund);
-        uint256 weiValue = investedAmountOf[msg.sender];
-        assert(weiValue != 0);
-        investedAmountOf[msg.sender] = 0;
-        weiRefunded = weiRefunded.plus(weiValue);
-        Refund(msg.sender, weiValue);
-        assert(msg.sender.send(weiValue));
-    }
 
     function investInternal(address receiver, uint128 customerId) stopInEmergency internal{
         State state = getState();
@@ -336,16 +345,14 @@ contract AlgoryCrowdsale is InvestmentPolicyCrowdsale {
     }
 
     /**
-     * Preallocate tokens for company, bounty and devs
+     * Preallocate tokens for developers, company and bounty
      */
     function preallocateTokens() private {
 //        TODO:
-//        assignTokens('address1', 7777);
-//        assignTokens('address2', 7777);
-//        assignTokens('address3', 7777);
-//        assignTokens('address4', 7777);
-//        assignTokens('address5', 7777);
-//        assignTokens('address6', 7777);
+        uint multiplier = 10 ** 18;
+        assignTokens(0x58FC33aC6c7001925B4E9595b13B48bA73690a39, 6450000 * multiplier); // developers
+        assignTokens(0x78534714b6b02996990cd567ebebd24e1f3dfe99, 6400000 * multiplier); // company
+        assignTokens(0xd64a60de8A023CE8639c66dAe6dd5f536726041E, 2400000 * multiplier); // bounty
     }
 
 }

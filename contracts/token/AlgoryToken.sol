@@ -1,15 +1,13 @@
 pragma solidity ^0.4.15;
 
-import './ReleasableToken.sol';
+import './CrowdsaleToken.sol';
 import './UpgradeableToken.sol';
-import './FractionalERC20.sol';
-import './BurnableToken.sol';
 
 /**
  * A Algory token.
  *
  */
-contract AlgoryToken is FractionalERC20, ReleasableToken, UpgradeableToken, BurnableToken {
+contract AlgoryToken is UpgradeableToken, CrowdsaleToken {
 
     string public name = 'Algory';
     string public symbol = 'ALG';

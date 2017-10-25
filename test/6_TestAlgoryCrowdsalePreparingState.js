@@ -11,6 +11,10 @@ function ether(n) {
     return new web3.BigNumber(web3.toWei(n, 'ether'))
 }
 
+function bigNumber(n) {
+    return new web3.BigNumber(n)
+}
+
 function checkIsEventTriggered(result, event) {
     for (let i = 0; i < result.logs.length; i++) {
         let log = result.logs[i];
@@ -30,24 +34,35 @@ const duration = {
     years:   function(val) { return val * this.days(365)}
 };
 
+const devsAddress = '0x58FC33aC6c7001925B4E9595b13B48bA73690a39';
+const devsTokens = bigNumber(6450000 * 10**18);
+const companyAddress = '0x78534714b6b02996990cd567ebebd24e1f3dfe99';
+const companyTokens = bigNumber(6400000 * 10**18);
+const bountyAddress = '0xd64a60de8A023CE8639c66dAe6dd5f536726041E';
+const bountyTokens = bigNumber(2400000 * 10**18);
+const totalSupply = bigNumber(120000000 * 10**18);
+const preallocatedTokens = devsTokens.plus(companyTokens).plus(bountyTokens);
+let beneficiary;
 
 contract('Test Algory Crowdsale Preparing State', function(accounts) {
-    let crowdsale, finalizeAgent, algory;
+    const multisigWallet = accounts[accounts.length-1];
+    let crowdsale, pricingStrategy, finalizeAgent, algory;
     let whitelistWeiRaised = 0;
-    it("prepare suite by assign deployed contracts and set dates to make preparing state", function () {
-        let presaleStartsAt = latestTime() + duration.days(10);
-        let startsAt = presaleStartsAt + duration.days(10);
-        let endsAt = startsAt + duration.days(10);
-        return crowdsaleContract.deployed()
+    beneficiary = accounts[0];
+    it("prepare suite by deploy contracts and set dates to make preparing state", function () {
+        const presaleStartsAt = latestTime() + duration.days(10);
+        const startsAt = presaleStartsAt + duration.days(10);
+        const endsAt = startsAt + duration.days(10);
+        return tokenContract.new(totalSupply)
+            .then(function (instance) {algory = instance})
+            .then(function () {return pricingStrategyContract.new()}).then(function (instance) {pricingStrategy = instance})
+            .then(function () {return crowdsaleContract.new(algory.address, beneficiary, pricingStrategy.address, multisigWallet, presaleStartsAt, startsAt, endsAt)})
             .then(function(instance) {crowdsale = instance})
-            .then(function() {return finalizeAgentContract.deployed()}).then(function (instance) { finalizeAgent = instance})
-            .then(function() {return tokenContract.deployed()}).then(function (instance) { algory = instance})
+            .then(function() {return finalizeAgentContract.new(algory.address, crowdsale.address)}).then(function (instance) { finalizeAgent = instance})
             .then(function () {return algory.setReleaseAgent(finalizeAgent.address)})
-
-
-            .then(function () {return crowdsale.setEndsAt(endsAt)})
-            .then(function () {return crowdsale.setStartsAt(startsAt)})
-            .then(function() {return crowdsale.setPresaleStartsAt(presaleStartsAt)})
+            .then(function () {return algory.setTransferAgent(beneficiary, true)})
+            .then(function () {return algory.approve(crowdsale.address, totalSupply)})
+            .then(function () {return crowdsale.prepareCrowdsale()})
     });
     it("should in preparing state", function () {
         return crowdsale.getState()
@@ -344,5 +359,20 @@ contract('Test Algory Crowdsale Preparing State', function(accounts) {
         }).then(function () {
             assert.ok(error, 'Crowdsale allow to refund')
         });
+    });
+    it("should preallocate part of tokens to company, devs and bounty", function () {
+        return algory.balanceOf(devsAddress).then(function (balance) {
+            assert.deepEqual(balance, devsTokens, 'Devs tokens is invalid');
+            return algory.balanceOf(companyAddress).then(function (balance) {
+                assert.deepEqual(balance, companyTokens, 'Company tokens is invalid');
+                return algory.balanceOf(bountyAddress).then(function (balance) {
+                    assert.deepEqual(balance, bountyTokens, 'Bounty tokens is invalid');
+                })
+            })
+        }).then(function () {
+            return algory.allowance(beneficiary, crowdsale.address).then(function (tokens) {
+                assert.deepEqual(tokens, totalSupply.minus(preallocatedTokens), 'Allowance of crowdsale is invalid')
+            })
+        })
     });
 });

@@ -20,6 +20,10 @@ function ether(n) {
     return new web3.BigNumber(web3.toWei(n, 'ether'))
 }
 
+function bigNumber(n) {
+    return new web3.BigNumber(n)
+}
+
 function checkIsEventTriggered(result, event) {
     for (let i = 0; i < result.logs.length; i++) {
         let log = result.logs[i];
@@ -30,14 +34,24 @@ function checkIsEventTriggered(result, event) {
     return false;
 }
 
+const devsAddress = '0x58FC33aC6c7001925B4E9595b13B48bA73690a39';
+const devsTokens = bigNumber(6450000 * 10**18);
+const companyAddress = '0x78534714b6b02996990cd567ebebd24e1f3dfe99';
+const companyTokens = bigNumber(6400000 * 10**18);
+const bountyAddress = '0xd64a60de8A023CE8639c66dAe6dd5f536726041E';
+const bountyTokens = bigNumber(2400000 * 10**18);
+const totalSupply = bigNumber(120000000 * 10**18);
+const preallocatedTokens = devsTokens.plus(companyTokens).plus(bountyTokens);
 
-const totalSupply = 120000000 * 10**18;
-let crowdsale, finalizeAgent, algory;
+let crowdsale, pricingStrategy, finalizeAgent, algory;
+
 let investorCount = 0;
 let presaleWeiRaised = 0;
-let tokensSold = 0;
+let tokensSold = bigNumber(0);
 let investors = [];
 let investorsAmount = {};
+
+let beneficiary;
 
 function buyAndCheckisTokensSold(from, value, expectedAmountOfTokens) {
     return crowdsale.sendTransaction({from: from, value: value})
@@ -62,7 +76,7 @@ function buyAndCheckisTokensSold(from, value, expectedAmountOfTokens) {
     .then(function (tokensAmount) {
         assert.equal(tokensAmount.toNumber(), expectedAmountOfTokens, 'Purchased tokens amount is invalid');
         presaleWeiRaised += value.toNumber();
-        tokensSold += value.toNumber() * 1200;
+        tokensSold = tokensSold.plus(value.times(1200));
         return crowdsale.presaleWeiRaised()
     })
     .then(function (presaleWei) {
@@ -78,11 +92,12 @@ function buyAndCheckisTokensSold(from, value, expectedAmountOfTokens) {
         return crowdsale.tokensSold();
     })
     .then(function (tokens) {
-        assert.equal(tokens.toNumber(), tokensSold, 'Tokens sold is invalid');
-        return crowdsale.getTokensLeft();
+        assert.deepEqual(tokens, tokensSold, 'Tokens sold is invalid');
+        return crowdsale.getTokensLeft()
     })
     .then(function (tokens) {
-        assert.equal(tokens.toNumber(), totalSupply - tokensSold, 'Tokens left is invalid');
+        let tokensLeft = totalSupply.minus(preallocatedTokens).minus(tokensSold);
+        assert.equal(tokens.toNumber(), tokensLeft.toNumber(), 'Tokens left is invalid');
     })
 }
 
@@ -97,27 +112,46 @@ function addToWhitelist(participant, valueParticipant) {
 }
 
 contract('Test Algory Crowdsale Prefunding State', function(accounts) {
-    it("prepare suite by assign deployed contracts and set dates to make prefunding state", function () {
-        let presaleStartsAt = latestTime();
-        let startsAt = presaleStartsAt + duration.days(10);
-        let endsAt = startsAt + duration.days(10);
-        return crowdsaleContract.deployed()
+    beneficiary = accounts[0];
+    const multisigWallet = accounts[accounts.length-1];
+    it("prepare suite by deploy contracts and set dates to make prefunding state", function () {
+        let presaleStartsAt = latestTime() + duration.minutes(10);
+        const startsAt = presaleStartsAt + duration.days(10);
+        const endsAt = startsAt + duration.days(10);
+        return tokenContract.new(totalSupply)
+            .then(function (instance) {algory = instance})
+            .then(function () {return pricingStrategyContract.new()}).then(function (instance) {pricingStrategy = instance})
+            .then(function () {return crowdsaleContract.new(algory.address, beneficiary, pricingStrategy.address, multisigWallet, presaleStartsAt, startsAt, endsAt)})
             .then(function(instance) {crowdsale = instance})
-            .then(function() {return finalizeAgentContract.deployed()}).then(function (instance) { finalizeAgent = instance})
-            .then(function() {return tokenContract.deployed()}).then(function (instance) { algory = instance})
+            .then(function() {return finalizeAgentContract.new(algory.address, crowdsale.address)}).then(function (instance) { finalizeAgent = instance})
             .then(function () {return algory.setReleaseAgent(finalizeAgent.address)})
             .then(function () {return crowdsale.setFinalizeAgent(finalizeAgent.address)})
+            .then(function () {return algory.setTransferAgent(beneficiary, true)})
             .then(function () {return algory.approve(crowdsale.address, totalSupply)})
+            .then(function () {return crowdsale.prepareCrowdsale()})
 
-            .then(function () {return crowdsale.setEndsAt(endsAt)})
-            .then(function () {return crowdsale.setStartsAt(startsAt)})
-            .then(function() {return crowdsale.setPresaleStartsAt(presaleStartsAt)})
+            .then(function() {return crowdsale.setPresaleStartsAt(latestTime())})
     });
     it("should in prefunding state", function () {
         return crowdsale.getState()
             .then(function (state) {
                 assert.equal(state.toNumber(), 2, 'Crowdsale state is not in prefunding state');
             })
+    });
+    it("should preallocate part of tokens to company, devs and bounty", function () {
+        return algory.balanceOf(devsAddress).then(function (balance) {
+            assert.deepEqual(balance, devsTokens, 'Devs tokens is invalid');
+            return algory.balanceOf(companyAddress).then(function (balance) {
+                assert.deepEqual(balance, companyTokens, 'Company tokens is invalid');
+                return algory.balanceOf(bountyAddress).then(function (balance) {
+                    assert.deepEqual(balance, bountyTokens, 'Bounty tokens is invalid');
+                })
+            })
+        }).then(function () {
+            return algory.allowance(beneficiary, crowdsale.address).then(function (tokens) {
+                assert.deepEqual(tokens, totalSupply.minus(preallocatedTokens), 'Allowance of crowdsale is invalid')
+            })
+        })
     });
     it("should replace multisig wallet if investment count is less than 6", function () {
         let anotherWallet = accounts[7];
@@ -261,19 +295,19 @@ contract('Test Algory Crowdsale Prefunding State', function(accounts) {
         //Added to whitelist
         return addToWhitelist(participant, valueParticipant)
             .then(function () {
-                addToWhitelist(participant2, valueParticipant2)
+                return addToWhitelist(participant2, valueParticipant2)
             })
             .then(function () {
-                addToWhitelist(participant3, valueParticipant3)
+                return addToWhitelist(participant3, valueParticipant3)
             })
             .then(function () {
-                addToWhitelist(participant4, valueParticipant4)
+                return addToWhitelist(participant4, valueParticipant4)
             })
             .then(function () {
-                addToWhitelist(participant5, valueParticipant5)
+                return addToWhitelist(participant5, valueParticipant5)
             })
             .then(function () {
-                addToWhitelist(participant6, valueParticipant6)
+                return addToWhitelist(participant6, valueParticipant6)
             })
             //Buy some tokens in prefunding
             .then(function () {
@@ -353,7 +387,6 @@ contract('Test Algory Crowdsale Prefunding State', function(accounts) {
                 return buyAndCheckisTokensSold(participant, valueToBuy4, expectedAmountOfTokens4);
             })
             .then(function () {
-
                 return crowdsale.sendTransaction({from: participant, value: valueToBuy5}).catch(function (err) {
                     error = err;
                 }).then(function () {
