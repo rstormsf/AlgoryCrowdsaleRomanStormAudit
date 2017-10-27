@@ -2,20 +2,27 @@ pragma solidity ^0.4.15;
 
 import './StandardToken.sol';
 
+/**
+ * @title Burnable Token
+ * @dev Token that can be irreversibly burned (destroyed).
+ */
 contract BurnableToken is StandardToken {
 
-    address public constant BURN_ADDRESS = 0x0;
-
-    /** How many tokens we burned */
-    event Burned(address burner, uint burnedAmount);
+    event Burn(address indexed burner, uint256 value);
 
     /**
-     * Burn extra tokens from a balance.
+     * @dev Burns a specific amount of tokens.
+     * @param _value The amount of token to be burned.
      */
-    function burn(uint burnAmount) {
+    function burn(uint256 _value) public {
+        require(_value > 0);
+        require(_value <= balances[msg.sender]);
+        // no need to require value <= totalSupply, since that would imply the
+        // sender's balance is greater than the totalSupply, which *should* be an assertion failure
+
         address burner = msg.sender;
-        balances[burner] = safeSub(balances[burner], burnAmount);
-        totalSupply = safeSub(totalSupply, burnAmount);
-        Burned(burner, burnAmount);
+        balances[burner] = balances[burner].sub(_value);
+        totalSupply = totalSupply.sub(_value);
+        Burn(burner, _value);
     }
 }

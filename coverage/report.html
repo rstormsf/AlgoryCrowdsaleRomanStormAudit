@@ -294,3 +294,246 @@ span { display: inline-block; }
 
 <body class="f9 b9">
 <pre>
+
+&gt; algory@1.0.0 
+
+
+
+  Contract: Test Algory Token
+  <span class="f2">  ✓</span><span class="f0"><span class="bold"> should set expected total supply after deploy</span></span><span class="f1"> (131ms)</span>
+  <span class="f2">  ✓</span><span class="f0"><span class="bold"> should set expected name after deploy</span></span><span class="f3"> (47ms)</span>
+  <span class="f2">  ✓</span><span class="f0"><span class="bold"> should set expected symbol after deploy</span></span><span class="f3"> (50ms)</span>
+  <span class="f2">  ✓</span><span class="f0"><span class="bold"> should set expected decimals after deploy</span></span>
+  <span class="f2">  ✓</span><span class="f0"><span class="bold"> should set upgrade master address after deploy</span></span>
+  <span class="f2">  ✓</span><span class="f0"><span class="bold"> should set unreleased flag after deploy</span></span>
+  <span class="f2">  ✓</span><span class="f0"><span class="bold"> should change token information (name, symbol)</span></span><span class="f1"> (121ms)</span>
+  <span class="f2">  ✓</span><span class="f0"><span class="bold"> should assign total supply to owner</span></span>
+  <span class="f2">  ✓</span><span class="f0"><span class="bold"> shouldn't be upgraded before release</span></span>
+
+  Contract: Test Standard Token
+  <span class="f2">  ✓</span><span class="f0"><span class="bold"> should return the correct totalSupply after construction</span></span>
+  <span class="f2">  ✓</span><span class="f0"><span class="bold"> should return the correct allowance amount after approval</span></span><span class="f1"> (124ms)</span>
+  <span class="f2">  ✓</span><span class="f0"><span class="bold"> should return correct balances after transfer</span></span><span class="f1"> (182ms)</span>
+  <span class="f2">  ✓</span><span class="f0"><span class="bold"> should throw an error when trying to transfer more than balance</span></span><span class="f1"> (82ms)</span>
+  <span class="f2">  ✓</span><span class="f0"><span class="bold"> should return correct balances after transfering from another account</span></span><span class="f1"> (289ms)</span>
+  <span class="f2">  ✓</span><span class="f0"><span class="bold"> should throw an error when trying to transfer more than allowed</span></span><span class="f1"> (92ms)</span>
+  <span class="f2">  ✓</span><span class="f0"><span class="bold"> should throw an error when trying to transferFrom more than _from has</span></span><span class="f1"> (93ms)</span>
+  <span class="f2">  ✓</span><span class="f0"><span class="bold"> should increase by 50 then set to 0 when decreasing by more than 50</span></span><span class="f1"> (107ms)</span>
+  <span class="f2">  ✓</span><span class="f0"><span class="bold"> should throw an error when trying to transfer to 0x0</span></span><span class="f1"> (83ms)</span>
+  <span class="f2">  ✓</span><span class="f0"><span class="bold"> should throw an error when trying to transferFrom to 0x0</span></span><span class="f1"> (136ms)</span>
+    validating allowance updates to spender
+    <span class="f2">  ✓</span><span class="f0"><span class="bold"> should start with zero</span></span>
+    <span class="f2">  ✓</span><span class="f0"><span class="bold"> should increase by 50 then decrease by 10</span></span><span class="f1"> (159ms)</span>
+
+  Contract: Test Burnable Token
+  <span class="f2">  ✓</span><span class="f0"><span class="bold"> should burn some tokens by owner</span></span><span class="f1"> (181ms)</span>
+  <span class="f2">  ✓</span><span class="f0"><span class="bold"> should burn some tokens by another owner</span></span><span class="f1"> (263ms)</span>
+  <span class="f2">  ✓</span><span class="f0"><span class="bold"> should't burn more tokens then sender own</span></span><span class="f3"> (63ms)</span>
+
+  Contract: Test Upgradable Token
+  <span class="f2">  ✓</span><span class="f0"><span class="bold"> should has proper upgradable master after create</span></span><span class="f1"> (216ms)</span>
+  <span class="f2">  ✓</span><span class="f0"><span class="bold"> should set upgrade master</span></span><span class="f3"> (69ms)</span>
+  <span class="f2">  ✓</span><span class="f0"><span class="bold"> shouldn't set upgrade master if sender is not master</span></span>
+  <span class="f2">  ✓</span><span class="f0"><span class="bold"> should set upgrade agent</span></span><span class="f1"> (140ms)</span>
+  <span class="f2">  ✓</span><span class="f0"><span class="bold"> shouldn't set invalid upgrade agent</span></span><span class="f1"> (136ms)</span>
+  <span class="f2">  ✓</span><span class="f0"><span class="bold"> should get proper state</span></span><span class="f1"> (258ms)</span>
+  <span class="f2">  ✓</span><span class="f0"><span class="bold"> should upgrade some tokens</span></span><span class="f1"> (361ms)</span>
+  <span class="f2">  ✓</span><span class="f0"><span class="bold"> shouldn't upgrade invalid amount of tokens</span></span><span class="f1"> (182ms)</span>
+  <span class="f2">  ✓</span><span class="f0"><span class="bold"> should get proper upgrading state</span></span><span class="f1"> (276ms)</span>
+
+  Contract: Test Algory Pricing Strategy
+  <span class="f2">  ✓</span><span class="f0"><span class="bold"> prepare suite by assign deployed contract</span></span>
+  <span class="f2">  ✓</span><span class="f0"><span class="bold"> should get proper presale max value per one investor</span></span>
+  <span class="f2">  ✓</span><span class="f0"><span class="bold"> should get proper tranches</span></span><span class="f1"> (213ms)</span>
+  <span class="f2">  ✓</span><span class="f0"><span class="bold"> shouldn't get tranche out of range</span></span>
+  <span class="f2">  ✓</span><span class="f0"><span class="bold"> should check is presale full</span></span><span class="f3"> (52ms)</span>
+  <span class="f2">  ✓</span><span class="f0"><span class="bold"> shouldn't allow to send money to this contract</span></span>
+  <span class="f2">  ✓</span><span class="f0"><span class="bold"> should get current rate</span></span><span class="f1"> (558ms)</span>
+  <span class="f2">  ✓</span><span class="f0"><span class="bold"> should get proper amount of tokens in I tranche</span></span><span class="f1"> (312ms)</span>
+  <span class="f2">  ✓</span><span class="f0"><span class="bold"> should get proper amount of tokens in II tranche</span></span><span class="f1"> (240ms)</span>
+  <span class="f2">  ✓</span><span class="f0"><span class="bold"> should get proper amount of tokens in III tranche</span></span><span class="f1"> (235ms)</span>
+  <span class="f2">  ✓</span><span class="f0"><span class="bold"> should get proper amount of tokens in IV tranche</span></span><span class="f1"> (234ms)</span>
+  <span class="f2">  ✓</span><span class="f0"><span class="bold"> shouldn't get amount of tokens for 0 value</span></span>
+
+  Contract: Test Algory Finalize Agent
+  <span class="f2">  ✓</span><span class="f0"><span class="bold"> prepare suite by assign deployed contract</span></span><span class="f1"> (118ms)</span>
+  <span class="f2">  ✓</span><span class="f0"><span class="bold"> should be finalized agent</span></span>
+  <span class="f2">  ✓</span><span class="f0"><span class="bold"> should be sane when it is set as release agent in token and finalize agent in crowdsale</span></span><span class="f3"> (60ms)</span>
+  <span class="f2">  ✓</span><span class="f0"><span class="bold"> should be sane when it is not set as release agent in token</span></span><span class="f1"> (160ms)</span>
+  <span class="f2">  ✓</span><span class="f0"><span class="bold"> should be sane when it is not set as finalize agent in crowdsale</span></span><span class="f1"> (151ms)</span>
+
+  Contract: Test Null Finalize Agent
+  <span class="f2">  ✓</span><span class="f0"><span class="bold"> prepare suite by assign deployed contract</span></span><span class="f1"> (107ms)</span>
+  <span class="f2">  ✓</span><span class="f0"><span class="bold"> should be finalized agent</span></span>
+  <span class="f2">  ✓</span><span class="f0"><span class="bold"> should be sane when it is set as finalize agent in crowdsale</span></span><span class="f3"> (43ms)</span>
+  <span class="f2">  ✓</span><span class="f0"><span class="bold"> shouldn't be sane when it is not set as finalize agent in crowdsale</span></span><span class="f1"> (93ms)</span>
+  <span class="f2">  ✓</span><span class="f0"><span class="bold"> should nothing to do when finalize crowdsale</span></span>
+
+  Contract: Test Algory Crowdsale Initializing
+  <span class="f2">  ✓</span><span class="f0"><span class="bold"> prepare suite by assign deployed contracts</span></span><span class="f3"> (40ms)</span>
+  <span class="f2">  ✓</span><span class="f0"><span class="bold"> should set expected owner, token, beneficiary, pricing strategy, multisig wallet, presale start, crowdsale start, crowdsale end</span></span><span class="f1"> (222ms)</span>
+  <span class="f2">  ✓</span><span class="f0"><span class="bold"> should check is crowdsale</span></span>
+  <span class="f2">  ✓</span><span class="f0"><span class="bold"> shouldn't allow refunding</span></span>
+  <span class="f2">  ✓</span><span class="f0"><span class="bold"> shouldn't be finalized</span></span><span class="f3"> (54ms)</span>
+  <span class="f2">  ✓</span><span class="f0"><span class="bold"> should has all token for sell</span></span><span class="f1"> (83ms)</span>
+  <span class="f2">  ✓</span><span class="f0"><span class="bold"> shouldn't be full</span></span><span class="f3"> (61ms)</span>
+
+  Contract: Test Algory Crowdsale Preparing State
+  <span class="f2">  ✓</span><span class="f0"><span class="bold"> prepare suite by deploy contracts and set dates to make preparing state</span></span><span class="f1"> (1178ms)</span>
+  <span class="f2">  ✓</span><span class="f0"><span class="bold"> should in preparing state</span></span><span class="f3"> (49ms)</span>
+  <span class="f2">  ✓</span><span class="f0"><span class="bold"> should replace multisig wallet</span></span><span class="f3"> (68ms)</span>
+  <span class="f2">  ✓</span><span class="f0"><span class="bold"> should set finalize agent</span></span><span class="f1"> (92ms)</span>
+  <span class="f2">  ✓</span><span class="f0"><span class="bold"> shouldn't set invalid finalize agent</span></span><span class="f1"> (104ms)</span>
+  <span class="f2">  ✓</span><span class="f0"><span class="bold"> should replace pricing strategy to another</span></span><span class="f1"> (203ms)</span>
+  <span class="f2">  ✓</span><span class="f0"><span class="bold"> shouldn't set invalid pricing strategy</span></span><span class="f1"> (124ms)</span>
+  <span class="f2">  ✓</span><span class="f0"><span class="bold"> should set presale, start and end dates</span></span><span class="f1"> (613ms)</span>
+  <span class="f2">  ✓</span><span class="f0"><span class="bold"> shouldn't set invalid presale, start and end dates</span></span><span class="f1"> (394ms)</span>
+  <span class="f2">  ✓</span><span class="f0"><span class="bold"> should set participant to whitelist </span></span><span class="f1"> (331ms)</span>
+  <span class="f2">  ✓</span><span class="f0"><span class="bold"> shouldn't set participant to whitelist with exceeded value</span></span><span class="f3"> (44ms)</span>
+  <span class="f2">  ✓</span><span class="f0"><span class="bold"> should load participants to whitelist from array</span></span><span class="f1"> (400ms)</span>
+  <span class="f2">  ✓</span><span class="f0"><span class="bold"> shouldn't set participant to whitelist when it is full</span></span><span class="f1"> (5447ms)</span>
+  <span class="f2">  ✓</span><span class="f0"><span class="bold"> shouldn't allow to buy tokens by anyone in preparing state</span></span><span class="f1"> (172ms)</span>
+  <span class="f2">  ✓</span><span class="f0"><span class="bold"> shouldn't allow to finalize crowdsale in preparing state</span></span><span class="f3"> (52ms)</span>
+  <span class="f2">  ✓</span><span class="f0"><span class="bold"> shouldn't allow to set refunding state in preparing state</span></span><span class="f3"> (61ms)</span>
+  <span class="f2">  ✓</span><span class="f0"><span class="bold"> shouldn't allow to refund in preparing state</span></span><span class="f3"> (54ms)</span>
+  <span class="f2">  ✓</span><span class="f0"><span class="bold"> should preallocate part of tokens to company, devs and bounty</span></span><span class="f1"> (117ms)</span>
+
+  Contract: Test Algory Crowdsale Prefunding State
+  <span class="f2">  ✓</span><span class="f0"><span class="bold"> prepare suite by deploy contracts and set dates to make prefunding state</span></span><span class="f1"> (1636ms)</span>
+  <span class="f2">  ✓</span><span class="f0"><span class="bold"> should in prefunding state</span></span><span class="f1"> (137ms)</span>
+  <span class="f2">  ✓</span><span class="f0"><span class="bold"> should preallocate part of tokens to company, devs and bounty</span></span><span class="f1"> (111ms)</span>
+  <span class="f2">  ✓</span><span class="f0"><span class="bold"> should replace multisig wallet if investment count is less than 6</span></span><span class="f3"> (71ms)</span>
+  <span class="f2">  ✓</span><span class="f0"><span class="bold"> should replace pricing strategy to another only in paused state</span></span><span class="f1"> (441ms)</span>
+  <span class="f2">  ✓</span><span class="f0"><span class="bold"> shouldn't set presale date</span></span><span class="f1"> (378ms)</span>
+  <span class="f2">  ✓</span><span class="f0"><span class="bold"> should set start and end dates</span></span><span class="f1"> (522ms)</span>
+  <span class="f2">  ✓</span><span class="f0"><span class="bold"> shouldn't allow to buy tokens by not whitelisted participant</span></span><span class="f1"> (93ms)</span>
+  <span class="f2">  ✓</span><span class="f0"><span class="bold"> shouldn't allow to finalize crowdsale in prefunding state</span></span><span class="f3"> (58ms)</span>
+  <span class="f2">  ✓</span><span class="f0"><span class="bold"> shouldn't allow to set refunding in prefunding state</span></span><span class="f3"> (58ms)</span>
+  <span class="f2">  ✓</span><span class="f0"><span class="bold"> shouldn't allow to refund in prefunding state</span></span><span class="f3"> (58ms)</span>
+  <span class="f2">  ✓</span><span class="f0"><span class="bold"> should allow to buy some tokens by whitelisted participants</span></span><span class="f1"> (4251ms)</span>
+  <span class="f2">  ✓</span><span class="f0"><span class="bold"> shouldn't allow to buy more tokens per one investor than declared in whitelist</span></span><span class="f1"> (206ms)</span>
+  <span class="f2">  ✓</span><span class="f0"><span class="bold"> shouldn't replace multisig wallet if investment count is grater than 5</span></span><span class="f3"> (64ms)</span>
+  <span class="f2">  ✓</span><span class="f0"><span class="bold"> should allow to multiple buy some tokens until whitelist participate is empty</span></span><span class="f1"> (2539ms)</span>
+
+  Contract: Test Algory Crowdsale Funding State
+  <span class="f2">  ✓</span><span class="f0"><span class="bold"> prepare suite by deploy contracts and set dates to make funding state</span></span><span class="f1"> (2404ms)</span>
+  <span class="f2">  ✓</span><span class="f0"><span class="bold"> should in funding state</span></span><span class="f1"> (175ms)</span>
+  <span class="f2">  ✓</span><span class="f0"><span class="bold"> should replace multisig wallet if investment count is less than 6</span></span><span class="f1"> (143ms)</span>
+  <span class="f2">  ✓</span><span class="f0"><span class="bold"> should replace pricing strategy to another only in paused state</span></span><span class="f1"> (465ms)</span>
+  <span class="f2">  ✓</span><span class="f0"><span class="bold"> shouldn't set start date</span></span><span class="f1"> (407ms)</span>
+  <span class="f2">  ✓</span><span class="f0"><span class="bold"> should set end dates</span></span><span class="f1"> (393ms)</span>
+  <span class="f2">  ✓</span><span class="f0"><span class="bold"> shouldn't allow to finalize algoryCrowdsale in funding state</span></span><span class="f1"> (94ms)</span>
+  <span class="f2">  ✓</span><span class="f0"><span class="bold"> shouldn't allow to set refunding in funding state</span></span><span class="f1"> (83ms)</span>
+  <span class="f2">  ✓</span><span class="f0"><span class="bold"> shouldn't allow to refund in prefunding state</span></span><span class="f3"> (69ms)</span>
+  <span class="f2">  ✓</span><span class="f0"><span class="bold"> should allow to buy some tokens by everyone</span></span><span class="f1"> (5370ms)</span>
+  <span class="f2">  ✓</span><span class="f0"><span class="bold"> shouldn't replace multisig wallet if investment count is grater than 5</span></span><span class="f3"> (63ms)</span>
+  <span class="f2">  ✓</span><span class="f0"><span class="bold"> should buy all tokens in I tranche</span></span><span class="f1"> (9983ms)</span>
+  <span class="f2">  ✓</span><span class="f0"><span class="bold"> should reached in multisig wallet hard cap = 10 000 ETH after I tranche</span></span><span class="f1"> (344ms)</span>
+  <span class="f2">  ✓</span><span class="f0"><span class="bold"> shouldn't has in multisig wallet more than 10 000 ETH after I tranche</span></span><span class="f1"> (99ms)</span>
+  <span class="f2">  ✓</span><span class="f0"><span class="bold"> shouldn't buy tokens for I tranche rate after limit exceed</span></span><span class="f1"> (957ms)</span>
+  <span class="f2">  ✓</span><span class="f0"><span class="bold"> should buy all tokens in II tranche</span></span><span class="f1"> (10080ms)</span>
+  <span class="f2">  ✓</span><span class="f0"><span class="bold"> should reached in multisig wallet hard cap = 25 000 ETH after II tranche</span></span><span class="f1"> (339ms)</span>
+  <span class="f2">  ✓</span><span class="f0"><span class="bold"> shouldn't has in multisig wallet more than 25 000 ETH after II tranche (+/- 1 ETH)</span></span>
+  <span class="f2">  ✓</span><span class="f0"><span class="bold"> shouldn't buy tokens for II tranche rate after limit exceed</span></span><span class="f1"> (934ms)</span>
+  <span class="f2">  ✓</span><span class="f0"><span class="bold"> should buy all tokens in III tranche</span></span><span class="f1"> (10076ms)</span>
+  <span class="f2">  ✓</span><span class="f0"><span class="bold"> should reached in multisig wallet hard cap = 50 000 ETH after III tranche</span></span><span class="f1"> (368ms)</span>
+  <span class="f2">  ✓</span><span class="f0"><span class="bold"> shouldn't has in multisig wallet more than 50 000 ETH after III tranche (+/- 1 ETH)</span></span>
+  <span class="f2">  ✓</span><span class="f0"><span class="bold"> shouldn't buy tokens for III tranche rate after limit exceed</span></span><span class="f1"> (911ms)</span>
+  <span class="f2">  ✓</span><span class="f0"><span class="bold"> should buy all tokens in IV tranche</span></span><span class="f1"> (9113ms)</span>
+  <span class="f2">  ✓</span><span class="f0"><span class="bold"> shouldn't buy tokens after all has been sold</span></span><span class="f1"> (113ms)</span>
+  <span class="f2">  ✓</span><span class="f0"><span class="bold"> should has 0 tokens left after all has been sold</span></span><span class="f3"> (52ms)</span>
+  <span class="f2">  ✓</span><span class="f0"><span class="bold"> should be in success state after all tokens sold</span></span><span class="f1"> (194ms)</span>
+  <span class="f2">  ✓</span><span class="f0"><span class="bold"> should reached in multisig wallet hard cap = 100 000 ETH (-10 ETH) after crowdsale</span></span><span class="f1"> (342ms)</span>
+  <span class="f2">  ✓</span><span class="f0"><span class="bold"> shouldn't has in multisig wallet more than 100 000 ETH after crowdsale</span></span>
+
+  Contract: Test Algory Crowdsale Success State
+  <span class="f2">  ✓</span><span class="f0"><span class="bold"> prepare suite by assign deployed contracts and set dates to make success state</span></span><span class="f1"> (13884ms)</span>
+  <span class="f2">  ✓</span><span class="f0"><span class="bold"> should be in success state</span></span><span class="f1"> (172ms)</span>
+  <span class="f2">  ✓</span><span class="f0"><span class="bold"> shouldn't be finalized yet</span></span>
+  <span class="f2">  ✓</span><span class="f0"><span class="bold"> shouldn't allow to transfer tokens by anyone in success sate</span></span>
+  <span class="f2">  ✓</span><span class="f0"><span class="bold"> shouldn't allow to buy tokens by anyone in success sate</span></span><span class="f1"> (96ms)</span>
+  <span class="f2">  ✓</span><span class="f0"><span class="bold"> should finalized crowdsale and release token transfer</span></span><span class="f1"> (183ms)</span>
+  <span class="f2">  ✓</span><span class="f0"><span class="bold"> should be in finalized state</span></span>
+  <span class="f2">  ✓</span><span class="f0"><span class="bold"> should able to transfer tokens by everyone who is owner</span></span><span class="f1"> (125ms)</span>
+
+    Contract: Test Algory Crowdsale Failure State
+  <span class="f2">  ✓</span><span class="f0"><span class="bold"> prepare suite by deploy contracts and set failure state</span></span><span class="f1"> (15143ms)</span>
+  <span class="f2">  ✓</span><span class="f0"><span class="bold"> should be in failure state</span></span><span class="f1"> (163ms)</span>
+  <span class="f2">  ✓</span><span class="f0"><span class="bold"> shouldn't allow to buy tokens by anyone in success sate</span></span><span class="f1"> (120ms)</span>
+  <span class="f2">  ✓</span><span class="f0"><span class="bold"> shouldn't allow to transfer tokens by anyone in failure sate</span></span>
+
+    Contract: Test Algory Crowdsale Refunding State
+  <span class="f2">  ✓</span><span class="f0"><span class="bold"> prepare suite by deploy contracts and set failure state</span></span><span class="f1"> (14848ms)</span>
+  <span class="f2">  ✓</span><span class="f0"><span class="bold"> should be in refunding state</span></span><span class="f1"> (168ms)</span>
+  <span class="f2">  ✓</span><span class="f0"><span class="bold"> should allow to refund money by investors</span></span><span class="f1"> (1978ms)</span>
+  <span class="f2">  ✓</span><span class="f0"><span class="bold"> should proper get wei refunded in crowdsale</span></span>
+
+    Contract: Test Algory Crowdsale Investment Policy
+  <span class="f2">  ✓</span><span class="f0"><span class="bold"> prepare suite by deploy contracts</span></span><span class="f1"> (1306ms)</span>
+  <span class="f2">  ✓</span><span class="f0"><span class="bold"> should set required customer id</span></span><span class="f3"> (68ms)</span>
+  <span class="f2">  ✓</span><span class="f0"><span class="bold"> should set required signed address</span></span><span class="f1"> (109ms)</span>
+
+  Contract: Test Safe Math
+  <span class="f2">  ✓</span><span class="f0"><span class="bold"> multiplies correctly</span></span><span class="f3"> (68ms)</span>
+  <span class="f2">  ✓</span><span class="f0"><span class="bold"> divides correctly</span></span><span class="f3"> (60ms)</span>
+  <span class="f2">  ✓</span><span class="f0"><span class="bold"> adds correctly</span></span><span class="f3"> (60ms)</span>
+  <span class="f2">  ✓</span><span class="f0"><span class="bold"> subtracts correctly</span></span><span class="f3"> (63ms)</span>
+  <span class="f2">  ✓</span><span class="f0"><span class="bold"> should throw an error if subtraction result would be negative</span></span>
+  <span class="f2">  ✓</span><span class="f0"><span class="bold"> should throw an error on addition overflow</span></span>
+  <span class="f2">  ✓</span><span class="f0"><span class="bold"> should throw an error on multiplication overflow</span></span>
+
+  Contract: Test Ownable Behavior
+  <span class="f2">  ✓</span><span class="f0"><span class="bold"> should have an owner</span></span>
+  <span class="f2">  ✓</span><span class="f0"><span class="bold"> changes owner after transfer</span></span><span class="f3"> (68ms)</span>
+  <span class="f2">  ✓</span><span class="f0"><span class="bold"> should prevent non-owners from transfering</span></span><span class="f3"> (44ms)</span>
+  <span class="f2">  ✓</span><span class="f0"><span class="bold"> should guard ownership against stuck state</span></span><span class="f3"> (50ms)</span>
+
+  Contract: Test Pausable Behavior
+  <span class="f2">  ✓</span><span class="f0"><span class="bold"> can perform normal process in non-pause</span></span><span class="f1"> (149ms)</span>
+  <span class="f2">  ✓</span><span class="f0"><span class="bold"> can not perform normal process in pause</span></span><span class="f1"> (184ms)</span>
+  <span class="f2">  ✓</span><span class="f0"><span class="bold"> can not take drastic measure in non-pause</span></span><span class="f1"> (107ms)</span>
+  <span class="f2">  ✓</span><span class="f0"><span class="bold"> can take a drastic measure in a pause</span></span><span class="f1"> (156ms)</span>
+  <span class="f2">  ✓</span><span class="f0"><span class="bold"> should resume allowing normal process after pause is over</span></span><span class="f1"> (197ms)</span>
+  <span class="f2">  ✓</span><span class="f0"><span class="bold"> should prevent drastic measure after pause is over</span></span><span class="f1"> (187ms)</span>
+
+
+<span class="f2"><span class="bold"> </span> 161 passing</span><span class="f0"><span class="bold"> (2m)</span></span>
+
+--------------------------------|----------|----------|----------|----------|----------------|
+File                            |  % Stmts | % Branch |  % Funcs |  % Lines |Uncovered Lines |
+--------------------------------|----------|----------|----------|----------|----------------|
+ crowdsale/                     |    94.61 |    73.28 |    91.67 |    95.17 |                |
+  AlgoryCrowdsale.sol           |    99.16 |    79.17 |      100 |      100 |                |
+  AlgoryFinalizeAgent.sol       |      100 |       50 |      100 |      100 |                |
+  AlgoryPricingStrategy.sol     |      100 |    83.33 |      100 |      100 |                |
+  FinalizeAgent.sol             |      100 |      100 |      100 |      100 |                |
+  InvestmentPolicyCrowdsale.sol |       50 |       20 |    42.86 |    46.15 |... 72,74,82,83 |
+  NullFinalizeAgent.sol         |      100 |      100 |      100 |      100 |                |
+  PricingStrategy.sol           |      100 |      100 |      100 |      100 |                |
+ lifecycle/                     |      100 |      100 |      100 |      100 |                |
+  Pausable.sol                  |      100 |      100 |      100 |      100 |                |
+ math/                          |      100 |    66.67 |      100 |      100 |                |
+  SafeMath.sol                  |      100 |    66.67 |      100 |      100 |                |
+ ownership/                     |      100 |      100 |      100 |      100 |                |
+  Ownable.sol                   |      100 |      100 |      100 |      100 |                |
+ token/                         |      100 |    78.85 |      100 |      100 |                |
+  AlgoryToken.sol               |      100 |       50 |      100 |      100 |                |
+  BurnableToken.sol             |      100 |       75 |      100 |      100 |                |
+  CrowdsaleToken.sol            |      100 |      100 |      100 |      100 |                |
+  ERC20.sol                     |      100 |      100 |      100 |      100 |                |
+  ERC20Basic.sol                |      100 |      100 |      100 |      100 |                |
+  ReleasableToken.sol           |      100 |    58.33 |      100 |      100 |                |
+  StandardToken.sol             |      100 |      100 |      100 |      100 |                |
+  UpgradeAgent.sol              |      100 |      100 |      100 |      100 |                |
+  UpgradeableToken.sol          |      100 |    81.82 |      100 |      100 |                |
+ wallet/                        |     6.38 |     4.55 |     7.69 |     6.48 |                |
+  MultiSigWallet.sol            |     6.38 |     4.55 |     7.69 |     6.48 |... 376,377,378 |
+--------------------------------|----------|----------|----------|----------|----------------|
+All files                       |    73.13 |    61.95 |    74.77 |    69.49 |                |
+--------------------------------|----------|----------|----------|----------|----------------|
+
+Istanbul coverage reports generated
+Cleaning up...
+</pre>
+</body>
+</html>

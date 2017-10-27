@@ -1,8 +1,8 @@
 pragma solidity ^0.4.15;
 
-import '../ownership/Haltable.sol';
+import '../lifecycle/Pausable.sol';
 
-contract InvestmentPolicyCrowdsale is Haltable {
+contract InvestmentPolicyCrowdsale is Pausable {
 
     /* Do we need to have unique contributor id for each customer */
     bool public requireCustomerId = false;
@@ -83,5 +83,5 @@ contract InvestmentPolicyCrowdsale is Haltable {
         investInternal(addr, customerId);
     }
 
-    function investInternal(address receiver, uint128 customerId) stopInEmergency internal;
+    function investInternal(address receiver, uint128 customerId) whenNotPaused internal;
 }

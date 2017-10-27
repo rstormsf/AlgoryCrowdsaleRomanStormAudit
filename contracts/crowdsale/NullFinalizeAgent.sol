@@ -1,7 +1,7 @@
 pragma solidity ^0.4.15;
 
 import './FinalizeAgent.sol';
-import '../math/SafeMathLib.sol';
+import '../math/SafeMath.sol';
 import './AlgoryCrowdsale.sol';
 
 /**

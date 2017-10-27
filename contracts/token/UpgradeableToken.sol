@@ -53,15 +53,14 @@ contract UpgradeableToken is StandardToken {
     function upgrade(uint256 value) public {
         require(value != 0);
         UpgradeState state = getUpgradeState();
-        if(!(state == UpgradeState.ReadyToUpgrade || state == UpgradeState.Upgrading)) {
-            revert();
-        }
+        assert(state == UpgradeState.ReadyToUpgrade || state == UpgradeState.Upgrading);
+        assert(value <= balanceOf(msg.sender));
 
-        balances[msg.sender] = safeSub(balances[msg.sender], value);
+        balances[msg.sender] = balances[msg.sender].sub(value);
 
         // Take tokens out from circulation
-        totalSupply = safeSub(totalSupply, value);
-        totalUpgraded = safeAdd(totalUpgraded, value);
+        totalSupply = totalSupply.sub(value);
+        totalUpgraded = totalUpgraded.add(value);
 
         // Upgrade agent reissues the tokens
         upgradeAgent.upgradeFrom(msg.sender, value);

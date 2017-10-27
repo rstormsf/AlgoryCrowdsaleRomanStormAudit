@@ -2,7 +2,7 @@ pragma solidity ^0.4.15;
 
 import './FinalizeAgent.sol';
 import './AlgoryCrowdsale.sol';
-import '../math/SafeMathLib.sol';
+import '../math/SafeMath.sol';
 import '../token/AlgoryToken.sol';
 
 /**
@@ -11,7 +11,7 @@ import '../token/AlgoryToken.sol';
  */
 contract AlgoryFinalizeAgent is FinalizeAgent {
 
-    using SafeMathLib for uint;
+    using SafeMath for uint;
 
     AlgoryToken public token;
     AlgoryCrowdsale public crowdsale;

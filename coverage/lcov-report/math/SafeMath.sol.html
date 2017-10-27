@@ -20,28 +20,28 @@
     </h1>
     <div class='clearfix'>
       <div class='fl pad1y space-right2'>
-        <span class="strong">31.25% </span>
+        <span class="strong">100% </span>
         <span class="quiet">Statements</span>
-        <span class='fraction'>5/16</span>
+        <span class='fraction'>10/10</span>
       </div>
       <div class='fl pad1y space-right2'>
-        <span class="strong">20% </span>
+        <span class="strong">66.67% </span>
         <span class="quiet">Branches</span>
-        <span class='fraction'>2/10</span>
+        <span class='fraction'>4/6</span>
       </div>
       <div class='fl pad1y space-right2'>
-        <span class="strong">25% </span>
+        <span class="strong">100% </span>
         <span class="quiet">Functions</span>
-        <span class='fraction'>2/8</span>
+        <span class='fraction'>4/4</span>
       </div>
       <div class='fl pad1y space-right2'>
-        <span class="strong">31.25% </span>
+        <span class="strong">100% </span>
         <span class="quiet">Lines</span>
-        <span class='fraction'>5/16</span>
+        <span class='fraction'>10/10</span>
       </div>
     </div>
   </div>
-  <div class='status-line low'></div>
+  <div class='status-line high'></div>
 <pre><table class="coverage">
 <tr><td class="line-count quiet">1
 2
@@ -74,120 +74,75 @@
 29
 30
 31
-32
-33
-34
-35
-36
-37
-38
-39
-40
-41
-42
-43
-44
-45
-46
-47</td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+32</td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">143×</span>
+<span class="cline-any cline-yes">143×</span>
+<span class="cline-any cline-yes">143×</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1×</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">293×</span>
-<span class="cline-any cline-yes">293×</span>
+<span class="cline-any cline-yes">324×</span>
+<span class="cline-any cline-yes">323×</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">147×</span>
-<span class="cline-any cline-yes">147×</span>
-<span class="cline-any cline-yes">147×</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">788×</span>
+<span class="cline-any cline-yes">788×</span>
+<span class="cline-any cline-yes">788×</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">pragma solidity ^0.4.15;
 &nbsp;
+&nbsp;
 /**
- * Math operations with safety checks
+ * @title SafeMath
+ * @dev Math operations with safety checks that throw on error
  */
-contract SafeMath {
-<span class="fstat-no" title="function not covered" >  function safeMul(uint a, uint b) internal returns (uint) </span>{
-<span class="cstat-no" title="statement not covered" >    uint c = a * b</span>;
-<span class="cstat-no" title="statement not covered" >    assert(a == 0 || c / a == b)</span>;
-<span class="cstat-no" title="statement not covered" >    return c;</span>
-  }
-&nbsp;
-<span class="fstat-no" title="function not covered" >  function safeDiv(uint a, uint b) internal returns (uint) </span>{
-<span class="cstat-no" title="statement not covered" >    assert(b &gt; 0)</span>;
-<span class="cstat-no" title="statement not covered" >    uint c = a / b</span>;
-<span class="cstat-no" title="statement not covered" >    assert(a == b * c + a % b)</span>;
-<span class="cstat-no" title="statement not covered" >    return c;</span>
-  }
-&nbsp;
-  function safeSub(uint a, uint b) internal returns (uint) {
-    <span class="missing-if-branch" title="else path not taken" >E</span>assert(b &lt;= a);
-    return a - b;
-  }
-&nbsp;
-  function safeAdd(uint a, uint b) internal returns (uint) {
-    uint c = a + b;
-    <span class="missing-if-branch" title="else path not taken" >E</span>assert(c&gt;=a &amp;&amp; c&gt;=b);
+library SafeMath {
+  function mul(uint256 a, uint256 b) internal constant returns (uint256) {
+    uint256 c = a * b;
+    <span class="missing-if-branch" title="else path not taken" >E</span>assert(a == 0 || c / a == b);
     return c;
   }
 &nbsp;
-<span class="fstat-no" title="function not covered" >  function max64(uint64 a, uint64 b) internal constant returns (uint64) </span>{
-<span class="cstat-no" title="statement not covered" >    return a &gt;= b ? a : b;</span>
+  function div(uint256 a, uint256 b) internal constant returns (uint256) {
+    // assert(b &gt; 0); // Solidity automatically throws when dividing by 0
+    uint256 c = a / b;
+    // assert(a == b * c + a % b); // There is no case in which this doesn't hold
+    return c;
   }
 &nbsp;
-<span class="fstat-no" title="function not covered" >  function min64(uint64 a, uint64 b) internal constant returns (uint64) </span>{
-<span class="cstat-no" title="statement not covered" >    return a &lt; b ? a : b;</span>
+  function sub(uint256 a, uint256 b) internal constant returns (uint256) {
+    assert(b &lt;= a);
+    return a - b;
   }
 &nbsp;
-<span class="fstat-no" title="function not covered" >  function max256(uint256 a, uint256 b) internal constant returns (uint256) </span>{
-<span class="cstat-no" title="statement not covered" >    return a &gt;= b ? a : b;</span>
+  function add(uint256 a, uint256 b) internal constant returns (uint256) {
+    uint256 c = a + b;
+    <span class="missing-if-branch" title="else path not taken" >E</span>assert(c &gt;= a);
+    return c;
   }
-&nbsp;
-<span class="fstat-no" title="function not covered" >  function min256(uint256 a, uint256 b) internal constant returns (uint256) </span>{
-<span class="cstat-no" title="statement not covered" >    return a &lt; b ? a : b;</span>
-  }
-&nbsp;
 }</pre></td></tr>
 </table></pre>
 <div class='push'></div><!-- for sticky footer -->
 </div><!-- /wrapper -->
 <div class='footer quiet pad2 space-top1 center small'>
   Code coverage
-  generated by <a href="http://istanbul-js.org/" target="_blank">istanbul</a> at Thu Oct 26 2017 00:16:59 GMT+0200 (CEST)
+  generated by <a href="http://istanbul-js.org/" target="_blank">istanbul</a> at Thu Oct 26 2017 19:33:09 GMT+0200 (CEST)
 </div>
 </div>
 <script src="../prettify.js"></script>

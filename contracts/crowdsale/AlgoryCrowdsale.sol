@@ -4,14 +4,14 @@ import './InvestmentPolicyCrowdsale.sol';
 import './PricingStrategy.sol';
 import '../token/CrowdsaleToken.sol';
 import './FinalizeAgent.sol';
-import '../math/SafeMathLib.sol';
+import '../math/SafeMath.sol';
 
 contract AlgoryCrowdsale is InvestmentPolicyCrowdsale {
 
     /* Max investment count when we are still allowed to change the multisig address */
     uint constant public MAX_INVESTMENTS_BEFORE_MULTISIG_CHANGE = 5;
 
-    using SafeMathLib for uint;
+    using SafeMath for uint;
 
     /* The token we are selling */
     CrowdsaleToken public token;
@@ -189,7 +189,7 @@ contract AlgoryCrowdsale is InvestmentPolicyCrowdsale {
      *
      * The owner can trigger a call the contract that provides post-crowdsale actions, like releasing the tokens.
      */
-    function finalize() inState(State.Success) onlyOwner stopInEmergency external {
+    function finalize() inState(State.Success) onlyOwner whenNotPaused external {
         // Already finalized
         assert(!finalized);
         // Finalizing is optional. We only call it if we are given a finalizing agent.
@@ -202,7 +202,7 @@ contract AlgoryCrowdsale is InvestmentPolicyCrowdsale {
     /** This is for manual allow refunding */
     function allowRefunding(bool val) onlyOwner external {
         State state = getState();
-        assert(halted || state == State.Success || state == State.Failure || state == State.Refunding);
+        assert(paused || state == State.Success || state == State.Failure || state == State.Refunding);
         allowRefund = val;
     }
 
@@ -212,7 +212,7 @@ contract AlgoryCrowdsale is InvestmentPolicyCrowdsale {
      */
     function loadRefund() inState(State.Failure) external payable {
         require(msg.value != 0);
-        loadedRefund = loadedRefund.plus(msg.value);
+        loadedRefund = loadedRefund.add(msg.value);
     }
 
     function refund() inState(State.Refunding) external {
@@ -220,7 +220,7 @@ contract AlgoryCrowdsale is InvestmentPolicyCrowdsale {
         uint256 weiValue = investedAmountOf[msg.sender];
         assert(weiValue != 0);
         investedAmountOf[msg.sender] = 0;
-        weiRefunded = weiRefunded.plus(weiValue);
+        weiRefunded = weiRefunded.add(weiValue);
         Refund(msg.sender, weiValue);
         assert(msg.sender.send(weiValue));
     }
@@ -228,7 +228,7 @@ contract AlgoryCrowdsale is InvestmentPolicyCrowdsale {
     function setPricingStrategy(PricingStrategy _pricingStrategy) onlyOwner public {
         State state = getState();
         if (state == State.PreFunding || state == State.Funding) {
-            assert(halted);
+            assert(paused);
         }
         pricingStrategy = _pricingStrategy;
         require(pricingStrategy.isPricingStrategy());
@@ -249,7 +249,7 @@ contract AlgoryCrowdsale is InvestmentPolicyCrowdsale {
         require(value <= pricingStrategy.getPresaleMaxValue());
         assert(!pricingStrategy.isPresaleFull(whitelistWeiRaised));
         earlyParticipantWhitelist[participant] = value;
-        whitelistWeiRaised = whitelistWeiRaised.plus(value);
+        whitelistWeiRaised = whitelistWeiRaised.add(value);
         Whitelisted(participant, value);
     }
 
@@ -298,7 +298,7 @@ contract AlgoryCrowdsale is InvestmentPolicyCrowdsale {
     }
 
 
-    function investInternal(address receiver, uint128 customerId) stopInEmergency internal{
+    function investInternal(address receiver, uint128 customerId) whenNotPaused internal{
         State state = getState();
         uint weiAmount = msg.value;
         uint tokenAmount = 0;
@@ -316,14 +316,14 @@ contract AlgoryCrowdsale is InvestmentPolicyCrowdsale {
             investorCount++;
         }
 
-        investedAmountOf[receiver] = investedAmountOf[receiver].plus(weiAmount);
-        tokenAmountOf[receiver] = tokenAmountOf[receiver].plus(tokenAmount);
-        weiRaised = weiRaised.plus(weiAmount);
-        tokensSold = tokensSold.plus(tokenAmount);
+        investedAmountOf[receiver] = investedAmountOf[receiver].add(weiAmount);
+        tokenAmountOf[receiver] = tokenAmountOf[receiver].add(tokenAmount);
+        weiRaised = weiRaised.add(weiAmount);
+        tokensSold = tokensSold.add(tokenAmount);
 
         if (state == State.PreFunding) {
-            presaleWeiRaised = presaleWeiRaised.plus(weiAmount);
-            earlyParticipantWhitelist[receiver] = earlyParticipantWhitelist[receiver].minus(weiAmount);
+            presaleWeiRaised = presaleWeiRaised.add(weiAmount);
+            earlyParticipantWhitelist[receiver] = earlyParticipantWhitelist[receiver].sub(weiAmount);
         }
 
         assert(!isBreakingCap(tokenAmount));

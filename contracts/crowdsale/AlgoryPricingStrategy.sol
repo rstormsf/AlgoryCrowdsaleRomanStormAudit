@@ -2,11 +2,11 @@ pragma solidity ^0.4.15;
 
 import '../ownership/Ownable.sol';
 import './PricingStrategy.sol';
-import '../math/SafeMathLib.sol';
+import '../math/SafeMath.sol';
 
 contract AlgoryPricingStrategy is PricingStrategy, Ownable {
 
-    using SafeMathLib for uint;
+    using SafeMath for uint;
 
     /**
     * Define pricing schedule using tranches.
@@ -61,7 +61,7 @@ contract AlgoryPricingStrategy is PricingStrategy, Ownable {
     function getAmountOfTokens(uint value, uint weiRaised) public constant returns (uint tokensAmount) {
         require(value > 0);
         uint rate = getCurrentRate(weiRaised);
-        return value.times(rate);
+        return value.mul(rate);
     }
 
     function getCurrentTranche(uint weiRaised) private constant returns (Tranche) {

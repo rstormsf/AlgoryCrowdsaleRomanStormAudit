@@ -3,7 +3,7 @@ let token = artifacts.require('./token/AlgoryToken.sol');
 let pricingStrategy = artifacts.require('./crowdsale/AlgoryPricingStrategy.sol');
 let crowdsale = artifacts.require('./crowdsale/AlgoryCrowdsale.sol');
 let finalizeAgent = artifacts.require('./crowdsale/AlgoryFinalizeAgent.sol');
-let safeMathLib = artifacts.require('./math/SafeMathLib.sol');
+let safeMath = artifacts.require('./math/SafeMath.sol');
 
 // const Pudding = require('ether-pudding');
 
@@ -27,8 +27,6 @@ module.exports = function(deployer, network, accounts) {
 
     // Token
     let algory;
-    let beneficiaryApproved = false;
-    const totalSupply = 120000000 * 10**18;
 
     // Crowdsale
     let algoryCrowdsale;
@@ -43,15 +41,15 @@ module.exports = function(deployer, network, accounts) {
     return deployer.deploy(multiSigWallet, [accounts[0], accounts[1], accounts[2]], requiredConfirmations)
     //Deploy SafeMathLib
     .then(function() {
-        return deployer.deploy(safeMathLib)
+        return deployer.deploy(safeMath)
     })
     //Link SafeMathLib
     .then(function() {
-        return deployer.link(safeMathLib, [crowdsale, pricingStrategy, token]);
+        return deployer.link(safeMath, [crowdsale, pricingStrategy, token]);
     })
     // Deploy Token
     .then(function() {
-        return deployer.deploy(token, totalSupply);
+        return deployer.deploy(token);
     })
     // Deploy Pricing Strategy
     .then(function() {

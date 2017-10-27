@@ -13,18 +13,15 @@ contract AlgoryToken is UpgradeableToken, CrowdsaleToken {
     string public symbol = 'ALG';
     uint public decimals = 18;
 
+    uint256 public INITIAL_SUPPLY = 120000000 * (10 ** uint256(decimals));
+
     event UpdatedTokenInformation(string newName, string newSymbol);
 
-    function AlgoryToken(uint _initialSupply) UpgradeableToken(msg.sender) {
+    function AlgoryToken() UpgradeableToken(msg.sender) {
         owner = msg.sender;
-        totalSupply = _initialSupply;
+        totalSupply = INITIAL_SUPPLY;
         require(totalSupply > 0);
         balances[owner] = totalSupply;
-        Minted(owner, totalSupply);
-    }
-
-    function releaseTokenTransfer() public onlyReleaseAgent {
-        super.releaseTokenTransfer();
     }
 
     function canUpgrade() public constant returns(bool) {
@@ -34,8 +31,6 @@ contract AlgoryToken is UpgradeableToken, CrowdsaleToken {
     function setTokenInformation(string _name, string _symbol) onlyOwner {
         name = _name;
         symbol = _symbol;
-        // use StringUtils
-//        require(name != '' && symbol != '');
         UpdatedTokenInformation(name, symbol);
     }
 
