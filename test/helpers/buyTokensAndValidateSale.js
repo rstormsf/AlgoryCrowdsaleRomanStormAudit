@@ -1,5 +1,4 @@
 import isEventTriggered from './isEventTriggered';
-import {constants} from './constants';
 
 const BigNumber = web3.BigNumber;
 require('chai')
@@ -7,47 +6,44 @@ require('chai')
     .use(require('chai-bignumber')(BigNumber))
     .should();
 
-let expectedInvestorCount = 0;
-let expectedPresaleWeiRaised = new BigNumber(0);
-let expectedTokensSold = new BigNumber(0);
-let expectedTokensLeft = new BigNumber(0);
-let expectedInvestors = [];
-let expectedInvestorsAmount = {};
-let expectedInvestorsTokens = {};
-
 export default async function buyTokensAndValidateSale(crowdsale, algory, from, value, expectedAmountOfTokens) {
+    let initWeiRaised = await crowdsale.weiRaised();
+    let initPresaleWeiRaised = await crowdsale.presaleWeiRaised();
+    let initInvestorsAmount = await crowdsale.investedAmountOf(from);
+    let initInvestorsTokens = await algory.balanceOf(from);
+    let initTokensSold = await crowdsale.tokensSold();
+    let initTokensLeft = await crowdsale.getTokensLeft();
+    let initInvestorCount = await crowdsale.investorCount();
+    let state = await crowdsale.getState();
+
+    let expectedInvestorsAmount = initInvestorsAmount.plus(value);
+    let expectedInvestorsTokens = initInvestorsTokens.plus(expectedAmountOfTokens);
+    let expectedPresaleWeiRaised = state.equals(2) ? initPresaleWeiRaised.plus(value) : new BigNumber(0);
+    let expectedWeiRaised = initWeiRaised.plus(value);
+    let expectedTokensSold = initTokensSold.plus(expectedAmountOfTokens);
+    let expectedTokensLeft = initTokensLeft.minus(expectedAmountOfTokens);
+    let expectedInvestorCount = initInvestorsAmount.equals(0) ? initInvestorCount.plus(1) : initInvestorCount;
+
     let {logs} = await crowdsale.sendTransaction({from: from, value: value});
     assert.ok(isEventTriggered(logs, 'Invested'));
-
-    if (expectedInvestors.indexOf(from) == -1) {
-        expectedInvestors.push(from);
-        expectedInvestorCount++;
-        expectedInvestorsAmount[from] = new BigNumber(0);
-        expectedInvestorsTokens[from] = new BigNumber(0);
-    }
-    expectedInvestorsAmount[from] = expectedInvestorsAmount[from].plus(value);
-    expectedInvestorsTokens[from] = expectedInvestorsTokens[from].plus(expectedAmountOfTokens);
-    expectedPresaleWeiRaised = expectedPresaleWeiRaised.plus(value);
-    expectedTokensSold = expectedTokensSold.plus(expectedAmountOfTokens);
-    expectedTokensLeft = constants.totalSupply.minus(constants.preallocatedTokens()).minus(expectedTokensSold);
 
     let currentInvestorsCount = await crowdsale.investorCount();
     currentInvestorsCount.should.be.bignumber.equal(expectedInvestorCount);
 
     let currentInvestedAmountOf = await crowdsale.investedAmountOf(from);
-    currentInvestedAmountOf.should.be.bignumber.equal(expectedInvestorsAmount[from]);
+    currentInvestedAmountOf.should.be.bignumber.equal(expectedInvestorsAmount);
 
     let currentTokenAmountOf = await crowdsale.tokenAmountOf(from);
-    currentTokenAmountOf.should.be.bignumber.equal(expectedInvestorsTokens[from]);
+    currentTokenAmountOf.should.be.bignumber.equal(expectedInvestorsTokens);
 
     let currentPresaleWeiRaised = await crowdsale.presaleWeiRaised();
     currentPresaleWeiRaised.should.be.bignumber.equal(expectedPresaleWeiRaised);
 
-    let currentBalanceOf = await algory.balanceOf(from);
-    currentBalanceOf.should.be.bignumber.equal(expectedInvestorsTokens[from]);
+    let currentWeiRaised = await crowdsale.weiRaised();
+    currentWeiRaised.should.be.bignumber.equal(expectedWeiRaised);
 
-    let currentCrowdsaleWeiRaised = await crowdsale.weiRaised();
-    currentCrowdsaleWeiRaised.should.be.bignumber.equal(expectedPresaleWeiRaised);
+    let currentBalanceOf = await algory.balanceOf(from);
+    currentBalanceOf.should.be.bignumber.equal(expectedInvestorsTokens);
 
     let currentTokensSold = await crowdsale.tokensSold();
     currentTokensSold.should.be.bignumber.equal(expectedTokensSold);
