@@ -26,9 +26,10 @@ export default async function buyTokensAndValidateSale(crowdsale, algory, from, 
 
     let result = await crowdsale.sendTransaction({from: from, value: value});
     assert.ok(isEventTriggered(result.logs, 'Invested'));
-    //Gas limit should be 200 000
-    result.receipt.cumulativeGasUsed.should.be.bignumber.below(250000);
-    result.receipt.gasUsed.should.be.bignumber.below(250000);
+    //Gas limit should be 250 000
+    assert.ok(result.receipt.gasUsed <= 250000, "Transaction for amount "+(value / 10**18)+" ETH used too much gas: "+result.receipt.gasUsed);
+    result.receipt.cumulativeGasUsed.should.be.bignumber.most(250000);
+    result.receipt.gasUsed.should.be.bignumber.most(250000);
 
     let currentInvestorsCount = await crowdsale.investorCount();
     currentInvestorsCount.should.be.bignumber.equal(expectedInvestorCount);
