@@ -94,6 +94,13 @@ contract('Test Algory Crowdsale Success State', function(accounts) {
         state.should.be.bignumber.equal(6);
     });
 
+    it("shouldn't finalize when it in finalized state", async function () {
+        let state = await crowdsale.getState();
+        state.should.be.bignumber.equal(6);
+        await crowdsale.finalize()
+            .should.be.rejectedWith(EVMThrow)
+    });
+
     it("should able to transfer tokens by everyone who is owner", async function () {
         let sender = accounts[1];
         let receiver = accounts[2];

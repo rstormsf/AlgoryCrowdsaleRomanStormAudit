@@ -60,6 +60,11 @@ contract('Test Algory Crowdsale Preparing State', function(accounts) {
         assert.equal(currentWallet, anotherWalletAddress);
     });
 
+    it("shouldn't set invalid multisig wallet", async function () {
+        await crowdsale.setMultisigWallet(0x0)
+            .should.be.rejectedWith(EVMThrow);
+    });
+
     it("should set finalize agent", async function () {
         const newAgent = await finalizeAgentContract.new(algory.address, crowdsale.address);
         await algory.setReleaseAgent(newAgent.address);
@@ -70,8 +75,11 @@ contract('Test Algory Crowdsale Preparing State', function(accounts) {
     });
 
     it("shouldn't set invalid finalize agent", async function () {
-        const invalidFinalizeAgent = await finalizeAgentContract.new('0x1', '0x2');
+        let invalidFinalizeAgent = await finalizeAgentContract.new('0x1', '0x2');
         await crowdsale.setFinalizeAgent(invalidFinalizeAgent.address)
+            .should.be.rejectedWith(EVMThrow);
+
+        await crowdsale.setFinalizeAgent('0x777')
             .should.be.rejectedWith(EVMThrow)
     });
 
@@ -111,19 +119,23 @@ contract('Test Algory Crowdsale Preparing State', function(accounts) {
     });
 
     it("shouldn't set invalid presale, start and end dates", async function () {
+        const currentStart = await crowdsale.startsAt();
+        const currentEnd = await crowdsale.endsAt();
+
         //Invalid dates
-        const endsAt = latestTime() - duration.days(1);
-        const startsAt = endsAt - duration.days(2);
-        const presaleStartsAt = startsAt + duration.days(333);
+        let invalidEndsAt = currentStart - duration.days(1);
+        let invalidStartsAt = currentEnd + duration.days(20);
+        let invalidPresaleStartsAt = currentEnd + duration.days(55);
 
-        await crowdsale.setEndsAt(endsAt)
+        await crowdsale.setEndsAt(invalidEndsAt)
             .should.be.rejectedWith(EVMThrow);
 
-        await crowdsale.setStartsAt(startsAt)
+        await crowdsale.setStartsAt(invalidStartsAt)
             .should.be.rejectedWith(EVMThrow);
 
-        await crowdsale.setPresaleStartsAt(presaleStartsAt)
+        await crowdsale.setPresaleStartsAt(invalidPresaleStartsAt)
             .should.be.rejectedWith(EVMThrow);
+
     });
 
     it("should set participant to whitelist ", async function () {
@@ -151,12 +163,26 @@ contract('Test Algory Crowdsale Preparing State', function(accounts) {
         invalidParticipantValue.should.be.bignumber.equal(0);
 
     });
+
+    it("shouldn't set invalid participant to whitelist ", async function () {
+        const invalidParticipant = 0x0;
+        await crowdsale.setEarlyParticipantWhitelist(invalidParticipant, ether(20))
+            .should.be.rejectedWith(EVMThrow);
+    });
+
+    it("shouldn't set invalid value participant to whitelist ", async function () {
+        let participant = '0x665465456';
+        await crowdsale.setEarlyParticipantWhitelist(participant, 0)
+            .should.be.rejectedWith(EVMThrow);
+    });
+
     it("shouldn't set participant to whitelist with exceeded value", async function () {
         let participant = '0x665465456';
         let value = constants.expectedPresaleMaxValue.plus(1);
         await crowdsale.setEarlyParticipantWhitelist(participant, value)
             .should.be.rejectedWith(EVMThrow);
     });
+
     it("should load participants to whitelist from array", async function () {
         let participantsAddress = [
             accounts[1], accounts[2], accounts[3], accounts[4], accounts[5]
@@ -231,5 +257,26 @@ contract('Test Algory Crowdsale Preparing State', function(accounts) {
         balanceOfDevs.should.be.bignumber.equal(constants.devsTokens);
         balanceOfComapny.should.be.bignumber.equal(constants.companyTokens);
         balanceOfBounty.should.be.bignumber.equal(constants.bountyTokens);
+    });
+
+    it("shouldn't prepare crowdsale when all tokens has not approved", async function () {
+        const presaleStartsAt = latestTime() + duration.days(10);
+        const startsAt = presaleStartsAt + duration.days(10);
+        const endsAt = startsAt + duration.days(10);
+
+        let algory2 = await tokenContract.new();
+        crowdsale = await crowdsaleContract.new(
+            algory2.address,
+            beneficiary,
+            pricingStrategy.address,
+            multisigWallet,
+            presaleStartsAt,
+            startsAt,
+            endsAt);
+        await algory.setReleaseAgent(finalizeAgent.address);
+        await algory.setTransferAgent(beneficiary, true);
+        // await algory.approve(crowdsale.address, constants.totalSupply);
+        await crowdsale.prepareCrowdsale()
+            .should.be.rejectedWith(EVMThrow);
     });
 });

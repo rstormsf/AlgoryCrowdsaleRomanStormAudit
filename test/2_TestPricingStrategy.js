@@ -55,6 +55,7 @@ contract('Test Algory Pricing Strategy', function(accounts) {
         await pricingStrategy.getTranche(4)
             .should.be.rejectedWith(EVMThrow)
     });
+
     it("should check is presale full", async function () {
         let isPresaleFull = await pricingStrategy.isPresaleFull(expectedTranches[1].amount);
         isPresaleFull.should.be.false;

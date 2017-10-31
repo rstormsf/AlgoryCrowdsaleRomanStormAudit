@@ -1,4 +1,4 @@
-pragma solidity ^0.4.15;
+pragma solidity 0.4.15;
 
 
 /// @title Multisignature wallet - Allows multiple parties to agree on transactions before execution.
@@ -34,10 +34,10 @@ contract MultiSigWallet {
     uint public transactionCount;
 
     struct Transaction {
-        address destination;
-        uint value;
-        bytes data;
-        bool executed;
+    address destination;
+    uint value;
+    bytes data;
+    bool executed;
     }
 
     /*
@@ -45,49 +45,49 @@ contract MultiSigWallet {
      */
     modifier onlyWallet() {
         if (msg.sender != address(this))
-        revert();
+        throw;
         _;
     }
 
     modifier ownerDoesNotExist(address owner) {
         if (isOwner[owner])
-        revert();
+        throw;
         _;
     }
 
     modifier ownerExists(address owner) {
         if (!isOwner[owner])
-        revert();
+        throw;
         _;
     }
 
     modifier transactionExists(uint transactionId) {
         if (transactions[transactionId].destination == 0)
-        revert();
+        throw;
         _;
     }
 
     modifier confirmed(uint transactionId, address owner) {
         if (!confirmations[transactionId][owner])
-        revert();
+        throw;
         _;
     }
 
     modifier notConfirmed(uint transactionId, address owner) {
         if (confirmations[transactionId][owner])
-        revert();
+        throw;
         _;
     }
 
     modifier notExecuted(uint transactionId) {
         if (transactions[transactionId].executed)
-        revert();
+        throw;
         _;
     }
 
     modifier notNull(address _address) {
         if (_address == 0)
-        revert();
+        throw;
         _;
     }
 
@@ -96,7 +96,7 @@ contract MultiSigWallet {
         || _required > ownerCount
         || _required == 0
         || ownerCount == 0)
-        revert();
+        throw;
         _;
     }
 
@@ -120,7 +120,7 @@ contract MultiSigWallet {
     {
         for (uint i=0; i<_owners.length; i++) {
             if (isOwner[_owners[i]] || _owners[i] == 0)
-            revert();
+            throw;
             isOwner[_owners[i]] = true;
         }
         owners = _owners;

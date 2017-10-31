@@ -135,7 +135,9 @@ contract AlgoryCrowdsale is InvestmentPolicyCrowdsale {
      * Allow to send money and get tokens.
      */
     function() payable {
-        invest(msg.sender);
+        assert(!requireCustomerId); // Crowdsale needs to track participants for thank you email
+        assert(!requiredSignedAddress); // Crowdsale allows only server-side signed participants
+        investInternal(msg.sender, 0);
     }
 
     function isCrowdsale() external constant returns (bool) {
@@ -166,7 +168,6 @@ contract AlgoryCrowdsale is InvestmentPolicyCrowdsale {
 
     function setEndsAt(uint end) onlyOwner external {
         require(end > startsAt && end > presaleStartsAt);
-        require(presaleStartsAt < startsAt && startsAt < end);
         endsAt = end;
         TimeBoundaryChanged('endsAt', endsAt);
     }
@@ -192,10 +193,7 @@ contract AlgoryCrowdsale is InvestmentPolicyCrowdsale {
     function finalize() inState(State.Success) onlyOwner whenNotPaused external {
         // Already finalized
         assert(!finalized);
-        // Finalizing is optional. We only call it if we are given a finalizing agent.
-        if(address(finalizeAgent) != 0) {
-            finalizeAgent.finalizeCrowdsale();
-        }
+        finalizeAgent.finalizeCrowdsale();
         finalized = true;
     }
 
@@ -272,7 +270,6 @@ contract AlgoryCrowdsale is InvestmentPolicyCrowdsale {
         if(finalized) return State.Finalized;
         else if (!isPreallocated) return State.Preparing;
         else if (address(finalizeAgent) == 0) return State.Preparing;
-        else if (!finalizeAgent.isSane()) return State.Preparing;
         else if (block.timestamp < presaleStartsAt) return State.Preparing;
         else if (block.timestamp >= presaleStartsAt && block.timestamp < startsAt) return State.PreFunding;
         else if (block.timestamp <= endsAt && block.timestamp >= startsAt && !isCrowdsaleFull()) return State.Funding;

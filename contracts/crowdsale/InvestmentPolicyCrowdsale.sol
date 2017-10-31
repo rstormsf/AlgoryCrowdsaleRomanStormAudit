@@ -18,7 +18,6 @@ contract InvestmentPolicyCrowdsale is Pausable {
 
     event InvestmentPolicyChanged(bool newRequireCustomerId, bool newRequiredSignedAddress, address newSignerAddress);
 
-
     /**
      * Set policy do we need to have server-side customer ids for the investments.
      *
@@ -44,7 +43,12 @@ contract InvestmentPolicyCrowdsale is Pausable {
      * Invest to tokens, recognize the payer and clear his address.
      */
     function buyWithSignedAddress(uint128 customerId, uint8 v, bytes32 r, bytes32 s) external payable {
-        investWithSignedAddress(msg.sender, customerId, v, r, s);
+        assert(requiredSignedAddress);
+        bytes memory prefix = "\x19Ethereum Signed Message:\n32";
+        bytes32 hash = sha3(prefix, sha3(msg.sender));
+        assert(ecrecover(hash, v, r, s) == signerAddress);
+        require(customerId != 0);  // UUIDv4 sanity check
+        investInternal(msg.sender, customerId);
     }
 
     /**
@@ -52,36 +56,11 @@ contract InvestmentPolicyCrowdsale is Pausable {
      *
      */
     function buyWithCustomerId(uint128 customerId) external payable {
-        investWithCustomerId(msg.sender, customerId);
+        assert(requireCustomerId);
+        require(customerId != 0);
+        investInternal(msg.sender, customerId);
     }
 
-    /**
-     * Allow anonymous contributions to this crowdsale.
-     */
-    function invest(address addr) public payable {
-        assert(!requireCustomerId); // Crowdsale needs to track participants for thank you email
-        assert(!requiredSignedAddress); // Crowdsale allows only server-side signed participants
-        investInternal(addr, 0);
-    }
-
-    /**
-     * Allow anonymous contributions to this crowdsale.
-     */
-    function investWithSignedAddress(address addr, uint128 customerId, uint8 v, bytes32 r, bytes32 s) public payable {
-        bytes32 hash = sha256(addr);
-        require(ecrecover(hash, v, r, s) == signerAddress);
-        require(customerId != 0);  // UUIDv4 sanity check
-        investInternal(addr, customerId);
-    }
-
-    /**
-     * Track who is the customer making the payment so we can send thank you email.
-     */
-    function investWithCustomerId(address addr, uint128 customerId) public payable {
-        // Crowdsale allows only server-side signed participants
-        require(requiredSignedAddress && customerId != 0);
-        investInternal(addr, customerId);
-    }
 
     function investInternal(address receiver, uint128 customerId) whenNotPaused internal;
 }

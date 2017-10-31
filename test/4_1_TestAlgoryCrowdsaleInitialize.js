@@ -14,6 +14,7 @@ require('chai')
 
 import latestTime from './helpers/latestTime'
 import {duration} from './helpers/duration'
+const EVMThrow = require('./helpers/EVMThrow');
 
 
 contract('Test Algory Crowdsale Initializing', function(accounts) {
@@ -59,6 +60,63 @@ contract('Test Algory Crowdsale Initializing', function(accounts) {
         assert.equal(crowdsalePresaleStart, presaleStart);
         assert.equal(crowdsaleStart, start);
         assert.equal(crowdsaleEnd, end);
+    });
+
+    it("shouldn't create crowdsale with invalid dates", async function () {
+        const presaleStart = latestTime() - duration.minutes(10);
+        const start = presaleStart + duration.minutes(15);
+        const end = start - duration.hours(1);
+        await crowdsaleContract.new(
+            algory.address,
+            beneficiary,
+            pricingStrategy.address,
+            multisigWallet.address,
+            presaleStart,
+            start,
+            end).should.be.rejectedWith(EVMThrow)
+    });
+
+    it("shouldn't create crowdsale with invalid token address", async function () {
+        const presaleStart = latestTime() + duration.minutes(10);
+        const start = presaleStart + duration.minutes(10);
+        const end = start + duration.hours(1);
+        await crowdsaleContract.new(
+            0x0,
+            beneficiary,
+            pricingStrategy.address,
+            multisigWallet.address,
+            presaleStart,
+            start,
+            end).should.be.rejectedWith(EVMThrow)
+    });
+
+    it("shouldn't create crowdsale with invalid beneficiary address", async function () {
+        const presaleStart = latestTime() + duration.minutes(10);
+        const start = presaleStart + duration.minutes(10);
+        const end = start + duration.hours(1);
+        await crowdsaleContract.new(
+            algory.address,
+            0x0,
+            pricingStrategy.address,
+            multisigWallet.address,
+            presaleStart,
+            start,
+            end).should.be.rejectedWith(EVMThrow)
+    });
+
+    it("shouldn't create crowdsale when beneficiary has not all tokens", async function () {
+        const presaleStart = latestTime() + duration.minutes(10);
+        const start = presaleStart + duration.minutes(10);
+        const end = start + duration.hours(1);
+        const anotherBeneficiary = accounts[7];
+        await crowdsaleContract.new(
+            algory.address,
+            anotherBeneficiary,
+            pricingStrategy.address,
+            multisigWallet.address,
+            presaleStart,
+            start,
+            end).should.be.rejectedWith(EVMThrow)
     });
 
     it("should be crowdsale", async function () {

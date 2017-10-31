@@ -24,8 +24,11 @@ export default async function buyTokensAndValidateSale(crowdsale, algory, from, 
     let expectedTokensLeft = initTokensLeft.minus(expectedAmountOfTokens);
     let expectedInvestorCount = initInvestorsAmount.equals(0) ? initInvestorCount.plus(1) : initInvestorCount;
 
-    let {logs} = await crowdsale.sendTransaction({from: from, value: value});
-    assert.ok(isEventTriggered(logs, 'Invested'));
+    let result = await crowdsale.sendTransaction({from: from, value: value});
+    assert.ok(isEventTriggered(result.logs, 'Invested'));
+    //Gas limit should be 200 000
+    result.receipt.cumulativeGasUsed.should.be.bignumber.below(250000);
+    result.receipt.gasUsed.should.be.bignumber.below(250000);
 
     let currentInvestorsCount = await crowdsale.investorCount();
     currentInvestorsCount.should.be.bignumber.equal(expectedInvestorCount);

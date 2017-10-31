@@ -17,6 +17,7 @@ import {duration} from './helpers/duration'
 import {constants} from './helpers/constants'
 import buyAllTokensInTranche from './helpers/buyAllTokensInTranche'
 import buyTokensAndValidateSale from './helpers/buyTokensAndValidateSale'
+import isEventTriggered from './helpers/isEventTriggered'
 const EVMThrow = require('./helpers/EVMThrow');
 
 contract('Test Algory Crowdsale Refunding State', function(accounts, network) {
@@ -24,6 +25,7 @@ contract('Test Algory Crowdsale Refunding State', function(accounts, network) {
     const multisigWallet = accounts[accounts.length-1];
 
     let crowdsale, pricingStrategy, finalizeAgent, algory;
+    let weiRefunded = new BigNumber(0);
 
     before(async function() {
         let presaleStartsAt = latestTime() + duration.minutes(10);
@@ -69,64 +71,60 @@ contract('Test Algory Crowdsale Refunding State', function(accounts, network) {
         state.should.be.bignumber.equal(7);
     });
 
-    // it("should allow to refund money by investors", function () {
-    //     let investor1 = accounts[10];
-    //     let investor2 = accounts[11];
-    //     let balanceBeforeRefunding1 = web3.eth.getBalance(investor1);
-    //     let balanceBeforeRefunding2 = web3.eth.getBalance(investor2);
-    //     let investedAmount1;
-    //     let investedAmount2;
-    //     let gasCost;
-    //     return crowdsale.investedAmountOf(investor1)
-    //         .then(function (amount) {
-    //             investedAmount1 = amount;
-    //             weiRefunded = weiRefunded.plus(amount);
-    //             assert.ok(investedAmount1.greaterThan(bigNumber(0)), 'Invested amount equal 0');
-    //             return crowdsale.refund({from: investor1})
-    //         })
-    //         .then(function (result) {
-    //             gasCost = bigNumber(result.receipt.gasUsed).times(web3.eth.gasPrice);
-    //             return checkIsEventTriggered(result, 'Refund')
-    //         })
-    //         .then(function () {
-    //             return crowdsale.investedAmountOf(investor1).then(function (amount) {
-    //                 assert.equal(amount.toNumber(), 0, 'Investor has still money in crowdsale')
-    //             })
-    //         })
-    //         .then(function () {
-    //             return web3.eth.getBalance(investor1)
-    //         })
-    //         .then(function (currentBallance) {
-    //             assert.ok(currentBallance.greaterThan(balanceBeforeRefunding1), 'Refunded value is invalid')
-    //         })
-    //         //another investor
-    //         .then(function () {
-    //             return crowdsale.investedAmountOf(investor2)
-    //         })
-    //         .then(function (amount) {
-    //             investedAmount2 = amount;
-    //             weiRefunded = weiRefunded.plus(amount);
-    //             assert.ok(investedAmount2.greaterThan(bigNumber(0)), 'Invested amount equal 0');
-    //             return crowdsale.refund({from: investor2})
-    //         })
-    //         .then(function (result) {
-    //             return checkIsEventTriggered(result, 'Refund')
-    //         })
-    //         .then(function () {
-    //             return crowdsale.investedAmountOf(investor2).then(function (amount) {
-    //                 assert.equal(amount.toNumber(), 0, 'Investor has still money in crowdsale')
-    //             })
-    //         })
-    //         .then(function () {
-    //             return web3.eth.getBalance(investor2)
-    //         })
-    //         .then(function (currentBallance) {
-    //             assert.ok(currentBallance.greaterThan(balanceBeforeRefunding2), 'Refunded value is invalid')
-    //         })
-    // });
-    // it("should proper get wei refunded in crowdsale", function () {
-    //     return crowdsale.weiRefunded().then(function (wei) {
-    //         assert.deepEqual(wei, weiRefunded, 'Wei refunded is invalid')
-    //     })
-    // });
+    it("shouldn't allow to refund 0 value", async function () {
+        await crowdsale.loadRefund({from: accounts[0], value: 0})
+            .should.be.rejectedWith(EVMThrow)
+    });
+
+    it("shouldn't allow to refund when its not allowed", async function () {
+        await crowdsale.allowRefunding(false);
+        await crowdsale.refund({from: accounts[0]})
+            .should.be.rejectedWith(EVMThrow);
+
+        await crowdsale.allowRefunding(true);
+    });
+
+    it("should allow to refund money by investors", async function () {
+        let investor = accounts[10];
+        let balanceBeforeRefunding = await web3.eth.getBalance(investor);
+
+        let investedAmountOfInvestor = await crowdsale.investedAmountOf(investor);
+        investedAmountOfInvestor.should.be.bignumber.above(0);
+        let {logs} = await crowdsale.refund({from: investor});
+        assert.ok(isEventTriggered(logs, 'Refund'));
+        let postInvestedAmountOfInvestor = await crowdsale.investedAmountOf(investor);
+        postInvestedAmountOfInvestor.should.be.bignumber.equal(0);
+        weiRefunded = weiRefunded.plus(investedAmountOfInvestor);
+
+        let postBalanceBeforeRefunding = await web3.eth.getBalance(investor);
+        postBalanceBeforeRefunding.should.be.bignumber.above(balanceBeforeRefunding);
+
+        investor = accounts[11];
+        balanceBeforeRefunding = await web3.eth.getBalance(investor);
+
+        investedAmountOfInvestor = await crowdsale.investedAmountOf(investor);
+        investedAmountOfInvestor.should.be.bignumber.above(0);
+        let result = await crowdsale.refund({from: investor});
+        assert.ok(isEventTriggered(result.logs, 'Refund'));
+        postInvestedAmountOfInvestor = await crowdsale.investedAmountOf(investor);
+        postInvestedAmountOfInvestor.should.be.bignumber.equal(0);
+        weiRefunded = weiRefunded.plus(investedAmountOfInvestor);
+
+        postBalanceBeforeRefunding = await web3.eth.getBalance(investor);
+        postBalanceBeforeRefunding.should.be.bignumber.above(balanceBeforeRefunding);
+
+    });
+
+    it("shouldn't allow to refund by investor with 0 value", async function () {
+        let investor = accounts[10];
+        let investedAmountOfInvestor = await crowdsale.investedAmountOf(investor);
+        investedAmountOfInvestor.should.be.bignumber.equal(0);
+        await crowdsale.refund({from: investor})
+            .should.be.rejectedWith(EVMThrow);
+    });
+
+    it("should proper get wei refunded in crowdsale", async function () {
+        let currentWeiRefunded = await crowdsale.weiRefunded();
+        currentWeiRefunded.should.be.bignumber.equal(weiRefunded);
+    });
 });
