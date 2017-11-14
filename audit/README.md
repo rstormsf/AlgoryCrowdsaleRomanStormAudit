@@ -206,15 +206,17 @@ in [test/test1results.txt](test/test1results.txt) and the detailed output saved 
 <br />
 
 ### Not Reviewed
+* [../contracts/lifecycle/Migrations.sol](../contracts/lifecycle/Migrations.sol)
+
+  This is a part of the Truffles testing framework
 
 * [../contracts/wallet/MultiSigWallet.sol](../contracts/wallet/MultiSigWallet.sol)
   The ConsenSys/Gnosis multisig wallet is the same as used in the [Gnosis MultiSig](https://github.com/gnosis/MultiSigWallet/commits/master/contracts/MultiSigWallet.sol).
 
   The only difference is in the line formating version number:
-
-  ```diff
-  $ diff MultiSigWallet/contracts/MultiSigWallet.sol algory-ico/contracts/wallet/MultiSigWallet.sol
-  37,40c37,40
+```diff
+diff MultiSigWallet/contracts/MultiSigWallet.sol algory-ico/contracts/wallet/MultiSigWallet.sol
+37,40c37,40
 <         address destination;
 <         uint value;
 <         bytes data;
@@ -225,12 +227,295 @@ in [test/test1results.txt](test/test1results.txt) and the detailed output saved 
 >     bytes data;
 >     bool executed;
 48c48
-.... and in the whole file
-  ```
+<             throw;
+---
+>         throw;
+54c54
+<             throw;
+---
+>         throw;
+60c60
+<             throw;
+---
+>         throw;
+66c66
+<             throw;
+---
+>         throw;
+72c72
+<             throw;
+---
+>         throw;
+78c78
+<             throw;
+---
+>         throw;
+84c84
+<             throw;
+---
+>         throw;
+90c90
+<             throw;
+---
+>         throw;
+96,99c96,99
+<             || _required > ownerCount
+<             || _required == 0
+<             || ownerCount == 0)
+<             throw;
+---
+>         || _required > ownerCount
+>         || _required == 0
+>         || ownerCount == 0)
+>         throw;
+105c105
+<         payable
+---
+>     payable
+108c108
+<             Deposit(msg.sender, msg.value);
+---
+>         Deposit(msg.sender, msg.value);
+118,119c118,119
+<         public
+<         validRequirement(_owners.length, _required)
+---
+>     public
+>     validRequirement(_owners.length, _required)
+123c123
+<                 throw;
+---
+>             throw;
+133,137c133,137
+<         public
+<         onlyWallet
+<         ownerDoesNotExist(owner)
+<         notNull(owner)
+<         validRequirement(owners.length + 1, required)
+---
+>     public
+>     onlyWallet
+>     ownerDoesNotExist(owner)
+>     notNull(owner)
+>     validRequirement(owners.length + 1, required)
+147,149c147,149
+<         public
+<         onlyWallet
+<         ownerExists(owner)
+---
+>     public
+>     onlyWallet
+>     ownerExists(owner)
+153,156c153,156
+<             if (owners[i] == owner) {
+<                 owners[i] = owners[owners.length - 1];
+<                 break;
+<             }
+---
+>         if (owners[i] == owner) {
+>             owners[i] = owners[owners.length - 1];
+>             break;
+>         }
+159c159
+<             changeRequirement(owners.length);
+---
+>         changeRequirement(owners.length);
+167,170c167,170
+<         public
+<         onlyWallet
+<         ownerExists(owner)
+<         ownerDoesNotExist(newOwner)
+---
+>     public
+>     onlyWallet
+>     ownerExists(owner)
+>     ownerDoesNotExist(newOwner)
+173,176c173,176
+<             if (owners[i] == owner) {
+<                 owners[i] = newOwner;
+<                 break;
+<             }
+---
+>         if (owners[i] == owner) {
+>             owners[i] = newOwner;
+>             break;
+>         }
+186,188c186,188
+<         public
+<         onlyWallet
+<         validRequirement(owners.length, _required)
+---
+>     public
+>     onlyWallet
+>     validRequirement(owners.length, _required)
+200,201c200,201
+<         public
+<         returns (uint transactionId)
+---
+>     public
+>     returns (uint transactionId)
+210,213c210,213
+<         public
+<         ownerExists(msg.sender)
+<         transactionExists(transactionId)
+<         notConfirmed(transactionId, msg.sender)
+---
+>     public
+>     ownerExists(msg.sender)
+>     transactionExists(transactionId)
+>     notConfirmed(transactionId, msg.sender)
+223,226c223,226
+<         public
+<         ownerExists(msg.sender)
+<         confirmed(transactionId, msg.sender)
+<         notExecuted(transactionId)
+---
+>     public
+>     ownerExists(msg.sender)
+>     confirmed(transactionId, msg.sender)
+>     notExecuted(transactionId)
+235,238c235,238
+<         public
+<         ownerExists(msg.sender)
+<         confirmed(transactionId, msg.sender)
+<         notExecuted(transactionId)
+---
+>     public
+>     ownerExists(msg.sender)
+>     confirmed(transactionId, msg.sender)
+>     notExecuted(transactionId)
+244c244
+<                 Execution(transactionId);
+---
+>             Execution(transactionId);
+256,258c256,258
+<         public
+<         constant
+<         returns (bool)
+---
+>     public
+>     constant
+>     returns (bool)
+263c263
+<                 count += 1;
+---
+>             count += 1;
+265c265
+<                 return true;
+---
+>             return true;
+278,280c278,280
+<         internal
+<         notNull(destination)
+<         returns (uint transactionId)
+---
+>     internal
+>     notNull(destination)
+>     returns (uint transactionId)
+284,287c284,287
+<             destination: destination,
+<             value: value,
+<             data: data,
+<             executed: false
+---
+>         destination: destination,
+>         value: value,
+>         data: data,
+>         executed: false
+300,302c300,302
+<         public
+<         constant
+<         returns (uint count)
+---
+>     public
+>     constant
+>     returns (uint count)
+305,306c305,306
+<             if (confirmations[transactionId][owners[i]])
+<                 count += 1;
+---
+>         if (confirmations[transactionId][owners[i]])
+>         count += 1;
+314,316c314,316
+<         public
+<         constant
+<         returns (uint count)
+---
+>     public
+>     constant
+>     returns (uint count)
+319,321c319,321
+<             if (   pending && !transactions[i].executed
+<                 || executed && transactions[i].executed)
+<                 count += 1;
+---
+>         if (   pending && !transactions[i].executed
+>         || executed && transactions[i].executed)
+>         count += 1;
+327,329c327,329
+<         public
+<         constant
+<         returns (address[])
+---
+>     public
+>     constant
+>     returns (address[])
+338,340c338,340
+<         public
+<         constant
+<         returns (address[] _confirmations)
+---
+>     public
+>     constant
+>     returns (address[] _confirmations)
+346,349c346,349
+<             if (confirmations[transactionId][owners[i]]) {
+<                 confirmationsTemp[count] = owners[i];
+<                 count += 1;
+<             }
+---
+>         if (confirmations[transactionId][owners[i]]) {
+>             confirmationsTemp[count] = owners[i];
+>             count += 1;
+>         }
+352c352
+<             _confirmations[i] = confirmationsTemp[i];
+---
+>         _confirmations[i] = confirmationsTemp[i];
+362,364c362,364
+<         public
+<         constant
+<         returns (uint[] _transactionIds)
+---
+>     public
+>     constant
+>     returns (uint[] _transactionIds)
+370,375c370,375
+<             if (   pending && !transactions[i].executed
+<                 || executed && transactions[i].executed)
+<             {
+<                 transactionIdsTemp[count] = i;
+<                 count += 1;
+<             }
+---
+>         if (   pending && !transactions[i].executed
+>         || executed && transactions[i].executed)
+>         {
+>             transactionIdsTemp[count] = i;
+>             count += 1;
+>         }
+378c378
+<             _transactionIds[i - from] = transactionIdsTemp[i];
+---
+>         _transactionIds[i - from] = transactionIdsTemp[i];
+380c380
+< }
+---
+> }
+\ No newline at end of file
 
-* [../contracts/lifecycle/Migrations.sol](../contracts/lifecycle/Migrations.sol)
+```
 
-  This is a part of the Truffles testing framework
 
 <br />
 
