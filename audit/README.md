@@ -6,7 +6,7 @@
 
 Roman Storm was commissioned to perform an audit on the Algory's crowdsale and token Ethereum smart contract.
 
-This audit has been conducted on Aigang's source code in commits
+This audit has been conducted on Alrogy's source code in commits
 [6853423](https://gitlab.com/marcin.gordel/algory-ico/commit/6853423c05e1b21c70f698482635293b3907e1e8).
 
 No potential vulnerabilities have been identified in the crowdsale and token contract.
@@ -90,6 +90,11 @@ I don't think it's necessary to check since INITIAL_SUPPLY is already hard coded
 
 * **LOW IMPORTANCE** MultiSigWallet has different line formating than original gnosis/MultiSigWallet.sol
 
+* **LOW IMPORTANCE** Remove unused code from * [../contracts/crowdsale/AlgoryCrowdsale.sol#L233](../contracts/crowdsale/AlgoryCrowdsale.sol#L233)
+
+```        //        require(pricingStrategy.isSane(address(this)));```
+
+
 <br />
 
 <hr />
@@ -159,7 +164,11 @@ in [test/test1results.txt](test/test1results.txt) and the detailed output saved 
 * [] Deploy AlgoryPricingStrategy contract
 * [] Deploy AlgoryCrowdsale contract
 * [] Deploy AlgoryToken contract
+* [] Change PricingStrategy by calling `setPricingStrategy`
+* [] Change MultiSig by calling `setMultisigWallet`
+* [] Call loadEarlyParticipantsWhitelist to whitelist addresses with cap amount
 * [] Send contributions for whitelisted addresses and non-whitelisted address
+* [] Call `finalize` by owner when crowdsale is successful
 * [] Call refund if crowdsale is not succesful
 
 <br />
