@@ -179,12 +179,12 @@ in [test/test1results.txt](test/test1results.txt) and the detailed output saved 
 
 * [x] [code-review/AlgoryCrowdsale.md](code-review/AlgoryCrowdsale.md)
   * [x] contract AlgoryCrowdsale is InvestmentPolicyCrowdsale
-* [] [code-review/AlgoryFinalizeAgent.md](code-review/AlgoryFinalizeAgent.md)
-  * [] contract AlgoryFinalizeAgent
-* [] [code-review/AlgoryPricingStrategy.md](code-review/AlgoryPricingStrategy.md)
-  * [] contract AlgoryPricingStrategy
-* [] [code-review/FinalizeAgent.md](code-review/FinalizeAgent.md)
-  * [] contract FinalizeAgent
+* [x] [code-review/AlgoryFinalizeAgent.md](code-review/AlgoryFinalizeAgent.md)
+  * [x] contract AlgoryFinalizeAgent
+* [x] [code-review/AlgoryPricingStrategy.md](code-review/AlgoryPricingStrategy.md)
+  * [x] contract AlgoryPricingStrategy
+* [x] [code-review/FinalizeAgent.md](code-review/FinalizeAgent.md)
+  * [x] contract FinalizeAgent
 * [] [code-review/InvestmentPolicyCrowdsale.md](code-review/InvestmentPolicyCrowdsale.md)
   * [] contract InvestmentPolicyCrowdsale
 * [] [code-review/PricingStrategy.md](code-review/PricingStrategy.md)
