@@ -1,4 +1,4 @@
-#AlgoryFinalizeAgent 
+# AlgoryFinalizeAgent 
 Source file [../../contracts/crowdsale/AlgoryFinalizeAgent.sol](../../contracts/crowdsale/AlgoryFinalizeAgent.sol).
 
 

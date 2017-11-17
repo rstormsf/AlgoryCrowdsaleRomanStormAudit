@@ -1,4 +1,4 @@
-#AlgoryPricingStrategy
+# AlgoryPricingStrategy
 Source file [../../contracts/crowdsale/AlgoryPricingStrategy.sol](../../contracts/crowdsale/AlgoryPricingStrategy.sol).
 
 

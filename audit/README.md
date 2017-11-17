@@ -219,10 +219,14 @@ in [test/test1results.txt](test/test1results.txt) and the detailed output saved 
 
   This is a part of the Truffles testing framework
 
+* [../contracts/crowdsale/NullFinalizeAgent.sol](../contracts/crowdsale/NullFinalizeAgent.sol)
+  NullFinalizeAgent is not used anywhere in the code
+
 * [../contracts/wallet/MultiSigWallet.sol](../contracts/wallet/MultiSigWallet.sol)
   The ConsenSys/Gnosis multisig wallet is the same as used in the [Gnosis MultiSig](https://github.com/gnosis/MultiSigWallet/commits/master/contracts/MultiSigWallet.sol).
 
   The only difference is in the line formating version number:
+
 ```diff
 diff MultiSigWallet/contracts/MultiSigWallet.sol algory-ico/contracts/wallet/MultiSigWallet.sol
 37,40c37,40

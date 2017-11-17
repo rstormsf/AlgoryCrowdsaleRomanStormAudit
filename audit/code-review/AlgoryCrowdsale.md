@@ -1,4 +1,4 @@
-#AlgoryCrowdsale 
+# AlgoryCrowdsale 
 Source file [../../contracts/crowdsale/AlgoryCrowdsale.sol](../../contracts/crowdsale/AlgoryCrowdsale.sol).
 
 

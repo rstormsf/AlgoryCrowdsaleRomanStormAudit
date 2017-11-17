@@ -1,4 +1,4 @@
-#FinalizeAgent
+# FinalizeAgent
 Source file [../../contracts/crowdsale/FinalizeAgent.sol](../../contracts/crowdsale/FinalizeAgent.sol).
 
 
