@@ -175,6 +175,8 @@ in [test/test1results.txt](test/test1results.txt) and the detailed output saved 
 * [] Send contributions for whitelisted addresses and non-whitelisted address
 * [] Call `finalize` by owner when crowdsale is successful
 * [] Call refund if crowdsale is not succesful
+* [] Try to send tokens during the crowdsale(Should be false)
+* [] Burn tokens by calling `burn`
 
 <br />
 
@@ -190,32 +192,32 @@ in [test/test1results.txt](test/test1results.txt) and the detailed output saved 
   * [x] contract AlgoryPricingStrategy
 * [x] [code-review/FinalizeAgent.md](code-review/FinalizeAgent.md)
   * [x] contract FinalizeAgent
-* [] [code-review/InvestmentPolicyCrowdsale.md](code-review/InvestmentPolicyCrowdsale.md)
-  * [] contract InvestmentPolicyCrowdsale
-* [] [code-review/PricingStrategy.md](code-review/PricingStrategy.md)
-  * [] contract PricingStrategy
-* [] [code-review/SafeMath.md](code-review/SafeMath.md)
-  * [] library SafeMath
-* [] [code-review/Ownable.md](code-review/Ownable.md)
-  * [] contract Ownable
-* [] [code-review/AlgoryToken.md](code-review/AlgoryToken.md)
-  * [] contract AlgoryToken
-* [] [code-review/BurnableToken.md](code-review/BurnableToken.md)
-  * [] contract BurnableToken
-* [] [code-review/CrowdsaleToken.md](code-review/CrowdsaleToken.md)
-  * [] contract CrowdsaleToken
-* [] [code-review/ERC20.md](code-review/ERC20.md)
-  * [] contract ERC20
-* [] [code-review/ERC20Basic.md](code-review/ERC20Basic.md)
-  * [] contract ERC20Basic
-* [] [code-review/ReleasableToken.md](code-review/ReleasableToken.md)
-  * [] contract ReleasableToken
-* [] [code-review/StandardToken.md](code-review/StandardToken.md)
-  * [] contract StandardToken
-* [] [code-review/UpgradeableToken.md](code-review/UpgradeableToken.md)
-  * [] contract UpgradeableToken
-* [] [code-review/UpgradeAgent.md](code-review/UpgradeAgent.md)
-  * [] contract UpgradeAgent
+* [x] [code-review/InvestmentPolicyCrowdsale.md](code-review/InvestmentPolicyCrowdsale.md)
+  * [x] contract InvestmentPolicyCrowdsale
+* [x] [code-review/PricingStrategy.md](code-review/PricingStrategy.md)
+  * [x] contract PricingStrategy
+* [x] [code-review/SafeMath.md](code-review/SafeMath.md)
+  * [x] library SafeMath
+* [x] [code-review/Ownable.md](code-review/Ownable.md)
+  * [x] contract Ownable
+* [x] [code-review/AlgoryToken.md](code-review/AlgoryToken.md)
+  * [x] contract AlgoryToken
+* [x] [code-review/BurnableToken.md](code-review/BurnableToken.md)
+  * [x] contract BurnableToken
+* [x] [code-review/CrowdsaleToken.md](code-review/CrowdsaleToken.md)
+  * [x] contract CrowdsaleToken
+* [x] [code-review/ERC20.md](code-review/ERC20.md)
+  * [x] contract ERC20
+* [x] [code-review/ERC20Basic.md](code-review/ERC20Basic.md)
+  * [x] contract ERC20Basic
+* [x] [code-review/ReleasableToken.md](code-review/ReleasableToken.md)
+  * [x] contract ReleasableToken
+* [x] [code-review/StandardToken.md](code-review/StandardToken.md)
+  * [x] contract StandardToken
+* [x] [code-review/UpgradeableToken.md](code-review/UpgradeableToken.md)
+  * [x] contract UpgradeableToken
+* [x] [code-review/UpgradeAgent.md](code-review/UpgradeAgent.md)
+  * [x] contract UpgradeAgent
 
 <br />
 
