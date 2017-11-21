@@ -125,7 +125,7 @@ highlight any areas of weaknesses.
 
 ## Limitations
 
-This audit makes no statements or warranties about the viability of the Aigang's business proposition, the individuals
+This audit makes no statements or warranties about the viability of the Algory's business proposition, the individuals
 involved in this business or the regulatory regime for the business model.
 
 <br />
