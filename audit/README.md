@@ -29,7 +29,7 @@ risk of the loss of ethers in this bespoke smart contract.
 
 ### Token Contract
 
-The *ALG* contract is built on the *ReleasableToken, UpgradeableToken* token contracts from https://github.com/TokenMarketNet/ico.
+The *ALG* contract is built on the *ReleasableToken, UpgradeableToken, BurnableToken, StandardToken* token contracts from https://github.com/TokenMarketNet/ico.
 
 Algory token implements Upgradeable token which means users can opt-in amount of tokens to the next smart contract revision
 Transfers will be halted during the ICO, and only will be enabled after crowdsale is finished.
@@ -67,6 +67,9 @@ In order to provide trustless behavior, I'd recommend adding the following code 
 ```
 require(!isPreallocated);
 ```
+* **MEDIUM IMPORTANCE** There are many instances that I found in contract that changing the state variable before checking the state. It's highly
+recommended to change state AFTER the `require/assert` check. Also reported in https://github.com/TokenMarketNet/ico/issues/84
+Please look over every file in [code-review](./code-review) folder
 
 * **LOW IMPORTANCE** Usage of `send` vs `transfer`.
 While it's perfectly fine to use `send` if it's used with `if` or `require` statement, there is already implemented 
@@ -93,6 +96,8 @@ I don't think it's necessary to check since INITIAL_SUPPLY is already hard coded
 * **LOW IMPORTANCE** Remove unused code from * [../contracts/crowdsale/AlgoryCrowdsale.sol#L233](../contracts/crowdsale/AlgoryCrowdsale.sol#L233)
 
 ```        //        require(pricingStrategy.isSane(address(this)));```
+
+* **LOW IMPORTANCE** Remove unused variable that I [reported](https://github.com/OpenZeppelin/zeppelin-solidity/issues/572) in openzeppelin repo for StandardToken contract. Awaiting comment from zeppelin team.
 
 
 <br />
