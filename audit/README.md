@@ -58,10 +58,11 @@ The following two recommendations are optional changes to the crowdsale and toke
 
 * **MEDIUM IMPORTANCE** Incorrect calculation of how much wei is allowed for presale.
 To reproduce:
-1. call setEarlyParticipantWhitelist("0x0039F22efB07A647557C7C5d17854CFD6D489eF3", "300000000000000000000")
-call again setEarlyParticipantWhitelist for the same address("0x0039F22efB07A647557C7C5d17854CFD6D489eF3", "300000000000000000000")
-Result: `whitelistWeiRaised` is `600000000000000000000`. 
-Expected result: since we only changed the value for whitelisted address to some other value, `whitelistWeiRaised` should not be increased.
+
+    1. call setEarlyParticipantWhitelist("0x0039F22efB07A647557C7C5d17854CFD6D489eF3", "300000000000000000000")
+    2. call again setEarlyParticipantWhitelist for the same address("0x0039F22efB07A647557C7C5d17854CFD6D489eF3", "300000000000000000000")
+    Result: `whitelistWeiRaised` is `600000000000000000000`. 
+    Expected result: since we only changed the value for whitelisted address to some other value, `whitelistWeiRaised` should not be increased.
 
 * **LOW IMPORTANCE** Usage of fallback function.
 The issue has been discussed with author of framework: https://github.com/TokenMarketNet/ico/issues/53 where
