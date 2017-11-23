@@ -56,18 +56,19 @@ Only 1 token address will be allowed to make transfers: the address from which t
 
 The following two recommendations are optional changes to the crowdsale and token contract:
 
-* **MEDIUM IMPORTANCE** Usage of fallback function.
+* **MEDIUM IMPORTANCE** Incorrect calculation of how much wei is allowed for presale.
+To reproduce:
+1. call setEarlyParticipantWhitelist("0x0039F22efB07A647557C7C5d17854CFD6D489eF3", "300000000000000000000")
+call again setEarlyParticipantWhitelist for the same address("0x0039F22efB07A647557C7C5d17854CFD6D489eF3", "300000000000000000000")
+Result: `whitelistWeiRaised` is `600000000000000000000`. 
+Expected result: since we only changed the value for whitelisted address to some other value, `whitelistWeiRaised` should not be increased.
+
+* **LOW IMPORTANCE** Usage of fallback function.
 The issue has been discussed with author of framework: https://github.com/TokenMarketNet/ico/issues/53 where
 he explains that it's highly recommended that to disable fallback to prevent users from sending ETH from crypto
 exchanges. Fallbacks are also executed if called method doesn't exist on a contract which might create another issues for the caller.
 
-* **MEDIUM IMPORTANCE** prepareCrowdsale method could be called multiple times.
-It's intended to call this method only once to prevent double token generation for founder's allocation.
-In order to provide trustless behavior, I'd recommend adding the following code in `prepareCrowdsale` method:
-```
-require(!isPreallocated);
-```
-* **MEDIUM IMPORTANCE** There are many instances that I found in contract that changing the state variable before checking the state. It's highly
+* **LOW IMPORTANCE** There are many instances that I found in contract that changing the state variable before checking the state. It's highly
 recommended to change state AFTER the `require/assert` check. Also reported in https://github.com/TokenMarketNet/ico/issues/84
 Please look over every file in [code-review](./code-review) folder
 
@@ -165,18 +166,17 @@ matches the audited source code, and that the deployment parameters are correctl
 The following functions were tested using the script [test/01_test1.sh](test/01_test1.sh) with the summary results saved
 in [test/test1results.txt](test/test1results.txt) and the detailed output saved in [test/test1output.txt](test/test1output.txt):
 
-* [] Deploy AlgoryFinalizeAgent contract
-* [] Deploy AlgoryPricingStrategy contract
-* [] Deploy AlgoryCrowdsale contract
-* [] Deploy AlgoryToken contract
-* [] Change PricingStrategy by calling `setPricingStrategy`
-* [] Change MultiSig by calling `setMultisigWallet`
-* [] Call loadEarlyParticipantsWhitelist to whitelist addresses with cap amount
-* [] Send contributions for whitelisted addresses and non-whitelisted address
-* [] Call `finalize` by owner when crowdsale is successful
-* [] Call refund if crowdsale is not succesful
-* [] Try to send tokens during the crowdsale(Should be false)
-* [] Burn tokens by calling `burn`
+* [x] Deploy AlgoryFinalizeAgent contract
+* [x] Deploy AlgoryPricingStrategy contract
+* [x] Deploy AlgoryCrowdsale contract
+* [x] Deploy AlgoryToken contract
+* [x] Change PricingStrategy by calling `setPricingStrategy`
+* [x] Call loadEarlyParticipantsWhitelist to whitelist addresses with cap amount
+* [x] Send contributions for whitelisted addresses and non-whitelisted address
+* [x] Call `finalize` by owner when crowdsale is successful
+* [x] Call refund if crowdsale is not succesful
+* [x] Try to send tokens during the crowdsale(Should be false)
+* [x] Burn tokens by calling `burn`
 
 <br />
 
@@ -220,6 +220,73 @@ in [test/test1results.txt](test/test1results.txt) and the detailed output saved 
   * [x] contract UpgradeAgent
 
 <br />
+
+### Testnet deployments
+Used tool [truffle-flattener](https://github.com/alcuadrado/truffle-flattener):
+```
+./node_modules/.bin/truffle-flattener contracts/crowdsale/AlgoryPricingStrategy.sol contracts/crowdsale/AlgoryCrowdsale.sol contracts/token/AlgoryToken.sol contracts/crowdsale/AlgoryFinalizeAgent.sol > algory_flat.sol
+```
+
+Algory token deployed:
+https://kovan.etherscan.io/address/0x7be33d2c245c5b3807fe9afeaf667986301c15a4#code
+
+AlgoryPricing Strategy deployed:
+https://kovan.etherscan.io/address/0x4bd838d20f2a6264b1910768fb7cdfc02746a88f#code
+
+AlgoryCrowdsale deployed:
+https://kovan.etherscan.io/address/0x3f4d0836527027b24fc60b95b2b14fcc04044c07#code
+
+AlgoryFinalizeAgent deployed:
+https://kovan.etherscan.io/address/0x234ecf44be1760a8daf32af4333904b6d12ef592#code
+
+AlgoryToken.setReleaseAgent(finalizeagent address):
+https://kovan.etherscan.io/tx/0x998472a82081d565b0fc39e41d7a238e89ab6a7d40df056241ac1a93f218c59b
+
+AlgoryCrowdsale.setFinalizeAgent(finalize agent address):
+https://kovan.etherscan.io/tx/0xa806c28a661199edc335b87402aba14cce55b39885e5acb68e9656490d35351e
+
+AlgoryToken.setTransferAgent(address from which tokens will be sold):
+https://kovan.etherscan.io/tx/0xb7a56521087928eafcd102547f2d636a5860bcb31ab068a2c2f460f77295840a
+
+AlgoryToken.approve(crowdsale, totalSupply to sell):
+https://kovan.etherscan.io/tx/0xaf710008dd02b83b6bd023ab65da417bbaf8a5d9ab5b14d5e3668d682f192458
+
+AlgoryCrowdsale.prepareCrowdsale:
+https://kovan.etherscan.io/tx/0xada4fcbeee5ef37765d7868d707c665b06113fe6f7a5b74d532467fe4c982e23
+Assigns tokens to the team
+
+Whitelist an address for presale:
+https://kovan.etherscan.io/tx/0xb7e9e2a3eeba596787ad8ffe19a9c301b3ad3ce460a289713f12a665710a9998
+
+Buy presale:
+https://kovan.etherscan.io/tx/0xdbe00264a517530e26071e7ec64b7a44dc8636c9238ac35afcd06eab1d6748df
+123 ether = 147,600 algory tokens
+
+Change crowdsale startAt:
+https://kovan.etherscan.io/tx/0xfea1e6e9ef2ee7219f99620939b1984928a6ccb21403d905bec14d74622361fc
+
+Call pause:
+https://kovan.etherscan.io/tx/0x6a779058aae3450d237cdc1c9e4f794b9b94ff7465a5afe5e1f6df5b58944f5f
+
+Call unpause:
+https://kovan.etherscan.io/tx/0x1c4ce33906eae48a846613105a914ed116824d2312e8de91e92ac65852ae8997
+
+Buy non-whitelisted during ICO(after presale has ended):
+https://kovan.etherscan.io/tx/0xf17afca41e968ed86f27af00477caefd7fe3bc23e8e996b37c6b91031a103a44
+0.5 eth = 600 algory
+
+Call setEndsAt:
+https://kovan.etherscan.io/tx/0x97bc94cb1898847203d37620458014952a22a422a415572fe702ee806ccca2ea
+
+Call finalize:
+https://kovan.etherscan.io/tx/0x69370bd215517c486e9d2ffba7cc4008257bc34cb38c36199eae41ddb4d0685d
+
+Call burn on token contract:
+https://kovan.etherscan.io/tx/0x3e7564a82003ff410cf630d6faa612a6a1a6be863e09f8579879bb5aaf4a105f
+
+Call transfer on token contract:
+https://kovan.etherscan.io/tx/0x408b9f70613943823c749cfdb10f07d97aebe0ab60418b3e7c8666e6741e5d96
+
 
 ### Not Reviewed
 * [../contracts/lifecycle/Migrations.sol](../contracts/lifecycle/Migrations.sol)
